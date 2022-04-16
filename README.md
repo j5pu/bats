@@ -1,0 +1,2 @@
+# bats.bash
+Bats Helpers
