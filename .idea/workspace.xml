@@ -5,23 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="1ae09027-b37c-415f-8140-e78ef89dbd3d" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.env" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.envrc" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.github/dependabot.yml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.github/workflows/tag.yaml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Makefile" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/bin/bats.bash" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/Brewfile" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/bats.bash/_bats::sourced.bats" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/bats.bash/_bats::vars.bats" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/bats.bash/asserts.bats" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/bats.bash/bats::array.bats" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/bats.bash/bats::envrc.bats" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/bats.bash/func::exported.bats" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/helpers/helper.bash" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.github/workflows/tap.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/etc/bash_completion.d/bats.bash" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/Makefile" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -77,13 +65,14 @@
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$" />
+      <recent name="$PROJECT_DIR$/.github/workflows" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/.idea" />
       <recent name="$PROJECT_DIR$/bin" />
     </key>
   </component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Makefile Target.publish">
     <configuration default="true" type="BashConfigurationType" singleton="false" factoryName="Bash">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="INTERPRETER_PATH" value="" />
@@ -154,6 +143,18 @@
     </configuration>
     <configuration default="true" type="MAKEFILE_TARGET_RUN_CONFIGURATION" factoryName="Makefile" singleton="false">
       <makefile filename="" target="" workingDirectory="" arguments="">
+        <envs />
+      </makefile>
+      <method v="2" />
+    </configuration>
+    <configuration name="publish" type="MAKEFILE_TARGET_RUN_CONFIGURATION" factoryName="Makefile" singleton="false" temporary="true">
+      <makefile filename="$PROJECT_DIR$/Makefile" target="publish" workingDirectory="" arguments="">
+        <envs />
+      </makefile>
+      <method v="2" />
+    </configuration>
+    <configuration name="tests" type="MAKEFILE_TARGET_RUN_CONFIGURATION" factoryName="Makefile" singleton="false" temporary="true">
+      <makefile filename="$PROJECT_DIR$/Makefile" target="tests" workingDirectory="" arguments="">
         <envs />
       </makefile>
       <method v="2" />
@@ -596,6 +597,12 @@
       <option name="_new_targetType" value="&quot;PATH&quot;" />
       <method v="2" />
     </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Makefile Target.publish" />
+        <item itemvalue="Makefile Target.tests" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="1" Folder0="$PROJECT_DIR$/../macdev" CustomDictionaries="1" CustomDictionary0="$PROJECT_DIR$/../macdev/spanish.dic" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TypeScriptGeneratedFilesManager">
@@ -614,5 +621,29 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_NEW_TODO" value="false" />
+  </component>
+  <component name="ch.raffael.plugins.idea.runpopup.RunConfigurationUseTracker">
+    <option name="runConfInfo">
+      <map>
+        <entry key="Makefile Target.publish">
+          <value>
+            <RunConfInfo>
+              <option name="confId" value="Makefile Target.publish" />
+              <option name="executorId" value="Run" />
+              <option name="timestamp" value="1650147978762" />
+            </RunConfInfo>
+          </value>
+        </entry>
+        <entry key="Makefile Target.tests">
+          <value>
+            <RunConfInfo>
+              <option name="confId" value="Makefile Target.tests" />
+              <option name="executorId" value="Run" />
+              <option name="timestamp" value="1650146247656" />
+            </RunConfInfo>
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
 </project>

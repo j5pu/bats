@@ -1,0 +1,30 @@
+name: tap
+
+on:
+  push:
+    tags:
+      - '**'
+  workflow_dispatch:
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+
+jobs:
+  tap:
+    name: Bump Homebrew formula
+    runs-on: ubuntu-latest
+    steps:
+      - uses: mislav/bump-homebrew-formula-action@v1
+        with:
+          formula-name: BatsBash
+          formula-path: Formula/${GITHUB_REPOSITORY##*/}.rb
+          homebrew-tap: j5pu/homebrew-tap
+          base-branch: master
+          download-url: https://github.com/${GITHUB_REPOSITORY}/archive/${GITHUB_REF}.tar.gz
+          commit-message: |
+            $(git log -1 --pretty=%B)
+            {{formulaName}} {{version}}
+            
+            Created by https://github.com/mislav/bump-homebrew-formula-action
+        env:
+          COMMITTER_TOKEN: ${{ env.GITHUB_TOKEN }}
