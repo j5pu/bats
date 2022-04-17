@@ -27,7 +27,7 @@ jobs:
           formula-name: BatsBash
           formula-path: ${{ steps.info.outputs.path }}
           homebrew-tap: j5pu/homebrew-tap
-          base-branch: master
+          base-branch: main
           download-url: ${{ steps.info.outputs.url }}
           commit-message: |
             $(git log -1 --pretty=%B)
