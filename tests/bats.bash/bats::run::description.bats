@@ -64,7 +64,7 @@ EOF
   touch 5
   bats::run::description
   assert_output <<EOF
-"1 2"
+"1 2" 3
 3
 4
 5
