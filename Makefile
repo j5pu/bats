@@ -5,6 +5,7 @@ msg := fix: completions
 export msg
 
 bats:
+	@! brew list bats &>/dev/null || brew uninstall bats
 	@brew bundle --file tests/Brewfile --quiet --no-lock | grep -v "^Using"
 
 publish: tests

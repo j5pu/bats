@@ -4,9 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="1ae09027-b37c-415f-8140-e78ef89dbd3d" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.github/workflows/tap.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/.github/workflows/tap.yaml" afterDir="false" />
+    <list default="true" id="1ae09027-b37c-415f-8140-e78ef89dbd3d" name="Changes" comment="auto">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/Makefile" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -16,6 +16,9 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
     <option name="ROOT_SYNC" value="DONT_SYNC" />
+  </component>
+  <component name="GitToolBoxStore">
+    <option name="projectConfigVersion" value="5" />
   </component>
   <component name="JsBowerSettings">
     <node-interpreter value="project" />
@@ -38,19 +41,19 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "WebServerToolWindowFactoryState": "false",
-    "last_opened_file_path": "/Users/j5pu/bats.bash",
-    "node.js.detected.package.eslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "preferences.fileTypes",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/j5pu/bats.bash&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.fileTypes&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="PyConsoleOptionsProvider">
     <option name="myPythonConsoleState">
       <console-settings custom-start-script="import sys; print('Python %s on %s' % (sys.version, sys.platform))&#10;sys.path.extend([WORKING_DIR_AND_PYTHON_PATHS])&#10;try:&#10;    import rich.pretty&#10;    import rich.console&#10;    import rich &#10;    from rich import inspect &#10;    from functools import partial &#10;    ins = partial(rich.inspect, docs=False, methods=True, private=True)&#10;    rinspect  = rich.inspect&#10;    console = rich.console.Console(color_system='256')&#10;    cp = console.print&#10;    rich.pretty.install(console=console, expand_all=True)&#10;except ModuleNotFoundError:&#10;    pass&#10;try:&#10;    from ghapi.all import GhApi&#10;    ghapi = GhApi()&#10;except ModuleNotFoundError:&#10;    pass&#10;if hasattr(__builtins__, '__IPYTHON__'):&#10;    '%rehashx'&#10;" is-module-sdk="true">
@@ -618,6 +621,8 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_NEW_TODO" value="false" />
+    <MESSAGE value="auto" />
+    <option name="LAST_COMMIT_MESSAGE" value="auto" />
   </component>
   <component name="ch.raffael.plugins.idea.runpopup.RunConfigurationUseTracker">
     <option name="runConfInfo">
