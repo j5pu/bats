@@ -217,6 +217,18 @@ bats::array() { mapfile -t BATS_ARRAY < <(xargs printf '%s\n' <<< ${BATS_TEST_DE
 bats::debian() { test -f /etc/os-release || grep -q debian /etc/os-release; }
 
 #######################################
+# run description array
+# Globals:
+#   BATS_ARRAY
+# Arguments:
+#  None
+#######################################
+bats::run::description() {
+  bats::array
+  run "${BATS_ARRAY[@]}"
+}
+
+#######################################
 # changes to $BATS_TOP, restores $PATH to $BATS_PATH, sources .envrc and prepend $BATS_TESTS/fixtures to $PATH
 # Globals:
 #   PATH
