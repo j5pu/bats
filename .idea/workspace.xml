@@ -6,7 +6,8 @@
   <component name="ChangeListManager">
     <list default="true" id="1ae09027-b37c-415f-8140-e78ef89dbd3d" name="Changes" comment="auto">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/Makefile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/bats.bash" beforeDir="false" afterPath="$PROJECT_DIR$/bin/bats.bash" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/bats.bash/bats::array.bats" beforeDir="false" afterPath="$PROJECT_DIR$/tests/bats.bash/bats::array.bats" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -370,6 +371,12 @@
       </EXTENSION>
       <method v="2" />
     </configuration>
+    <configuration name="bats::array '1 2' 3 4 5 " type="bashpro.bats-core" singleton="false" temporary="true">
+      <option name="failingTestOutput" value="true" />
+      <option name="testDataPath" value="$PROJECT_DIR$/tests/bats.bash/bats::array.bats" />
+      <option name="testNamesPattern" value="^bats::array[[:space:]]+'1[[:space:]]+2'[[:space:]]+3[[:space:]]+4[[:space:]]+5[[:space:]]+$" />
+      <method v="2" />
+    </configuration>
     <configuration default="true" type="docker-deploy" factoryName="docker-compose.yml" singleton="false">
       <deployment type="docker-compose.yml">
         <settings>
@@ -601,6 +608,7 @@
       <list>
         <item itemvalue="Makefile Target.publish" />
         <item itemvalue="Makefile Target.tests" />
+        <item itemvalue="bats-core.bats::array '1 2' 3 4 5 " />
       </list>
     </recent_temporary>
   </component>
@@ -632,7 +640,7 @@
             <RunConfInfo>
               <option name="confId" value="Makefile Target.publish" />
               <option name="executorId" value="Run" />
-              <option name="timestamp" value="1650155693122" />
+              <option name="timestamp" value="1650280421554" />
             </RunConfInfo>
           </value>
         </entry>
@@ -641,7 +649,16 @@
             <RunConfInfo>
               <option name="confId" value="Makefile Target.tests" />
               <option name="executorId" value="Run" />
-              <option name="timestamp" value="1650146247656" />
+              <option name="timestamp" value="1650280396029" />
+            </RunConfInfo>
+          </value>
+        </entry>
+        <entry key="bats-core.bats::array '1 2' 3 4 5 ">
+          <value>
+            <RunConfInfo>
+              <option name="confId" value="bats-core.bats::array '1 2' 3 4 5 " />
+              <option name="executorId" value="Run" />
+              <option name="timestamp" value="1650280000564" />
             </RunConfInfo>
           </value>
         </entry>

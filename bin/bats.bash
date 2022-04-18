@@ -204,10 +204,8 @@ _bats::vars() {
 # Globals:
 #   BATS_ARRAY
 #   BATS_TEST_DESCRIPTION
-# Arguments:
-#  1    Value (default: $BATS_TEST_DESCRIPTION)
 #######################################
-bats::array() { read -r -a BATS_ARRAY <<<"${1:-${BATS_TEST_DESCRIPTION}}"; }
+bats::array() { mapfile -t BATS_ARRAY < <(xargs printf '%s\n' <<< ${BATS_TEST_DESCRIPTION}); }
 
 #######################################
 # running on debian
