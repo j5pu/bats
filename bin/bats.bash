@@ -205,6 +205,7 @@ _bats::vars() {
 #   BATS_ARRAY
 #   BATS_TEST_DESCRIPTION
 #######################################
+# shellcheck disable=SC2086
 bats::array() { mapfile -t BATS_ARRAY < <(xargs printf '%s\n' <<< ${BATS_TEST_DESCRIPTION}); }
 
 #######################################
@@ -222,6 +223,8 @@ bats::debian() { test -f /etc/os-release || grep -q debian /etc/os-release; }
 #   BATS_ARRAY
 # Arguments:
 #  None
+# Caution:
+#  Do not se it with single quotes ('echo "1 2" 3 4'), use double quotes ("echo '1 2' 3 4")
 #######################################
 bats::run::description() {
   bats::array
