@@ -185,7 +185,7 @@ _bats::vars() {
 
   BATS_TMP="${BATS_FILE_TMPDIR}"
 
-  BATS_TOP="${PWD}"
+  BATS_TOP="$(pwd -P)"
 
   BATS_BASENAME="${BATS_TOP##*/}"
 
