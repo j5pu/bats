@@ -1,4 +1,4 @@
-.PHONY: bats publish tests version
+.PHONY: bats publish test tests version
 
 SHELL := $(shell bash -c 'command -v bash')
 msg := fix: completions
@@ -14,5 +14,9 @@ publish: tests
 	@git push --quiet
 
 tests: bats
-	@bin/bats.bash run
+	@bin/bats.bash
+
+test: bats
+	@bin/shts
+
 

@@ -2,20 +2,21 @@
 
 setup_file() { load ../helpers/helper; }
 
-@test "func::exported foo " {
-  run func::exported foo
+@test "func_exported foo " {
+  shts::run
   assert_failure
   assert_line --partial "foo: function not exported"
 }
 
-@test "func::exported setup_file " {
-  run func::exported setup_file
+@test "func_exported setup_file " {
+  shts::run
   assert_failure
   assert_line --partial "setup_file: function not exported"
 }
 
-@test "func::exported valid " {
+@test "func_exported valid " {
   valid() { :; }; export -f valid
-  run func::exported valid
+
+  shts::run
   assert_success
 }

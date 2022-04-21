@@ -3,14 +3,14 @@
 setup_file() { load ../helpers/helper; }
 
 @test "echo '1 2' 3 4 5 " {
-  bats::run::description
+  shts::run
   assert_output - <<EOF
 1 2 3 4 5
 EOF
 }
 
 @test "echo \"1 2\" 3 4 5 " {
-  bats::run::description
+  shts::run
   assert_output - <<EOF
 1 2 3 4 5
 EOF
@@ -23,7 +23,7 @@ EOF
   touch 3
   touch 4
   touch 5
-  bats::run::description
+  shts::run
   assert_output - <<EOF
 1 2
 3
@@ -39,7 +39,7 @@ EOF
   touch 3
   touch 4
   touch 5
-  bats::run::description
+  shts::run
   assert_output - <<EOF
 1 2
 3

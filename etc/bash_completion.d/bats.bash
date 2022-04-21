@@ -11,6 +11,8 @@
 #######################################
 _bats_bash() {
   [ "$1" = "$3" ] || return 0
+  mapfile -t COMPREPLY < <(compgen -o nospace -W "$("$1" commands) -h --help help" -- "$2")
+
   COMPREPLY=($(compgen -o nospace -W "$("$1" commands; printf '%s\n' -h --help)" -- "$2"))
 }
 

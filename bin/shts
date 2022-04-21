@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+
+set -eu
+shopt -s inherit_errexit
+
+. "${0}.sh"
+
+#######################################
+# show help and exit
+# Arguments:
+#   None
+#######################################
+help() {
+  cat <<EOF
+usage: ${0##*/} [<tests>]
+   or: ${0##*/} -h|-help|commands|help|list|verbose
+   or: . ${0##*/}
+   or: . ${0##*/} [-h|-help|commands|help|list|verbose]
+
+bats testing wrapper and helper functions
+
+<tests> is the path to a Bats test file, or the path to a directory containing Bats test files (ending with ".bats")
+if no <tests> run for: 'tests', 'test', '__tests__' or first directory found with ".bats" files.
+
+Commands:
+   -h, --help, help  display this help and exit
+   commands          display ${0##*/}' commands
+   list              display list of functions available when ${0##*/} is sourced
+   verbose           run bats tests showing all outputs, with trace and not cleaning the tempdir
+
+Globals:
+   SHTS_TESTS       path to the test directory, passed as argument or found by 'shts'
+EOF
+  exit "${1:-0}"
+}
+
+#######################################
+# parse arguments when is executed and run bats  (private used by bats.bash)
+# Globals:
+#   OPTS_BACK
+# Arguments:
+#   None
+#######################################
+main() {
+  local args=(--jobs "${BATS_NUMBER_OF_PARALLEL_JOBS:-1}" --print-output-on-failure --recursive)
+  local output="${SHTS_TOP:-.}/.output" tests=()
+
+  rm -rf "${output}"
+
+  for arg; do
+    case "${arg}" in
+      -h|--help|help) help ;;
+      commands) printf '%s\n' -h --help help "${arg}" list verbose | sort; exit ;;
+      list)
+        { file_functions "$(brew --prefix)"/lib/bats-*/src/*.bash "${0}.sh"; \
+          awk -F '(' "/^  ${0##*/}::.*\(\)/ { gsub(/ /,\"\",\$1); print \$1 }" "${0}.sh"; } | sort
+        exit
+        ;;
+      verbose) args+=(--gather-test-outputs-in "${output}" --no-tempdir-cleanup --output "${output}" \
+        --show-output-of-passing-tests --timing --trace --verbose-run) ;;
+      *)
+        { test -d "${arg}" && test -n "$(find "${arg}" -type f -name "*.bats")"; } \
+          || { test -f "${arg}" && test "${arg##*.}" = "bats"; } \
+          || { >&2 echo -e "${0##*/}: ${arg}: invalid argument/test path\n"; help 1; }
+        tests=("${arg}")
+        ;;
+    esac
+  done
+
+  if [ ! "${tests-}" ]; then
+    if [ ! "${SHTS_TOP-}" ]; then
+      >&2 echo "${0##*/}: ${PWD}: not a git repository (or any of the parent directories)"
+      exit 1
+    fi
+    for i in tests test __tests__; do
+      tests=("${SHTS_TOP}/${i}")
+      if test -d "${tests[0]}"; then
+        break
+      fi
+    done
+    if [ ! "${tests-}" ]; then
+      tests=(find . -type f -name "*.bats" -exec dirname "{}" \; -quit)
+      if [ ! "${tests-}" ]; then
+        >&2 echo "${0##*/}: ${PWD}: no bats test found"
+        exit 1
+      fi
+    fi
+  fi
+
+  tests=("$(realpath "${tests[0]}")")
+  bats "${tests[@]}" "${args[@]}"
+}
+
+main "$@"
