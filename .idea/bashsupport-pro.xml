@@ -2,20 +2,11 @@
 <project version="4">
   <component name="bashsupport-pro.project">
     <scriptLibraries>
-      <library name="bats">
-        <sources>
-          <source path="/usr/local/Cellar/bats-assert/2.0.0/lib/bats-assert/src" recursive="true" external="true" />
-          <source path="/usr/local/Cellar/bats-file/0.3.0/lib/bats-file/src" recursive="true" external="true" />
-          <source path="/usr/local/Cellar/bats-support/0.3.0/lib/bats-support/src" recursive="true" external="true" />
-        </sources>
-        <targets>
-          <target path="tests" recursive="true" />
-        </targets>
-      </library>
+      <library name="bats" />
       <library name="shts">
         <sources>
           <source path="bin/shts.sh" />
-          <source path="bin/bats.bash" />
+          <source path="share/bats/bats.bash" />
         </sources>
         <targets>
           <target path="bin" recursive="true" />

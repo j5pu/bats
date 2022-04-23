@@ -15,7 +15,7 @@ _shts() {
   ! [[ "${COMP_WORDS[1]}" =~ -h|--help|help|commands|functions|list ]] || return 0
   [[ $COMP_CWORD -ne 1 ]] || mapfile -t commands < <("$1" commands)
   mapfile -t list < <(comm -23 <("$1" list) <(printarr "${COMP_WORDS[@]:1:COMP_CWORD-1}"))
-  mapfile -t options < <(comm -23 <(printarr --dry-run --verbose) <(printarr "${COMP_WORDS[@]:1:COMP_CWORD-1}"))
+  mapfile -t options < <(comm -23 <(printarr --dry-run --one --verbose) <(printarr "${COMP_WORDS[@]:1:COMP_CWORD-1}"))
   mapfile -t COMPREPLY < <(compgen -o nosort -W "${commands[*]} ${options[*]} ${list[*]}" -- "$2")
 }
 

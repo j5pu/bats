@@ -1,4 +1,0 @@
-#!/usr/bin/env shts
-#shellcheck shell=bats
-
-@test "$(shts::basename) " { shts::run; assert_success; }

@@ -41,6 +41,7 @@ Commands:
 
 Options:
    --dry-run         show command that would be executed and globals
+   --one             run only one job in parallel instead of \$BATS_NUMBER_OF_PARALLEL_JOBS
    --verbose         run bats tests showing all outputs, with trace and not cleaning the tempdir
 
 Globals:
@@ -60,7 +61,9 @@ EOF
 #  1 if not tests found or argument is not a directory
 #######################################
 tests() {
-  test -d "$1" && mapfile -t TESTS < <(find "$(realpath "$1")" -type f \( -name "*.bats" -o -name "*.shts" \));
+  test -d "$1" || return
+  mapfile -t TESTS < <(find "$(realpath "$1")" \( -type f -o -type l \) \( -name "*.bats" -o -name "*.shts" \)) \
+    && [ "${TESTS-}" ];
 }
 
 #######################################
@@ -72,7 +75,7 @@ tests() {
 #######################################
 main() {
   script="${0##*/}"
-  local args=(--jobs "${BATS_NUMBER_OF_PARALLEL_JOBS:-1}" --print-output-on-failure)
+  local args=(--print-output-on-failure) jobs=()
   local directory dry=false list=false output="${SHTS_TOP:-.}/.output"
 
   rm -rf "${output}"
@@ -81,6 +84,7 @@ main() {
     case "${arg}" in
       -h|--help|help) help ;;
       --dry-run) dry=true ;;
+      --one) unset BATS_NUMBER_OF_PARALLEL_JOBS ;;
       --verbose) args+=(--gather-test-outputs-in "${output}" --no-tempdir-cleanup --output "${output}" \
         --show-output-of-passing-tests --timing --trace --verbose-run) ;;
       commands) printf '%s\n' -h --help help "${arg}" functions list| sort; exit ;;
@@ -88,11 +92,13 @@ main() {
       list) list=true ;;
       *)
         { test -f "${arg}" && [[ "${arg##*.}" =~ bats|shts ]] && directory="$(dirname "${arg}")" \
-          && TESTS=("$(realpath "${arg}")"); } || { tests "${arg}" && directory="${arg}"; } || help "${arg}"
-        directory="$(realpath "${directory}")"
+          && TESTS=("$(realpath "${arg}")"); } || tests "${arg}" || help "${arg}"
+        directory="$(realpath "${directory:-${arg}}")"
         ;;
     esac
   done
+
+  jobs=(--jobs "${BATS_NUMBER_OF_PARALLEL_JOBS:-1}")
 
   if [ ! "${TESTS-}" ]; then
     if tests "$(pwd)"; then
@@ -111,9 +117,9 @@ main() {
   if $list; then
     printarr "${TESTS[@]}" | sed "s|$(pwd)/||"
   elif $dry; then
-    echo SHTS_OUTPUT="${output}" SHTS_TESTS="$(realpath "${directory}")" bats "${TESTS[@]}" "${args[@]}"
+    echo SHTS_OUTPUT="${output}" SHTS_TESTS="$(realpath "${directory}")" bats "${TESTS[@]}" "${jobs[@]}" "${args[@]}"
   else
-    SHTS_OUTPUT="${output}" SHTS_TESTS="$(realpath "${directory}")" bats "${TESTS[@]}" "${args[@]}"
+    SHTS_OUTPUT="${output}" SHTS_TESTS="$(realpath "${directory}")" bats "${TESTS[@]}" "${jobs[@]}" "${args[@]}"
   fi
 }
 

@@ -57,7 +57,7 @@ if test $__PROFILE_D_SOURCED -eq 0; then
   for i in ${etc}; do
     dir="${i}/profile.d"
     if test -d "${dir}"; then
-      if test -n "$(find "${dir}" -type f -o -type l -name ".sh" -print -quit)"; then
+      if test -n "$(find "${dir}" \( -type f -o -type l \) -name ".sh" -print -quit)"; then
         for j in "${dir}"/*.sh; do
           . "${j}" || return
         done
@@ -81,7 +81,7 @@ has _init_completion || ! test -f /usr/share/bash-completion/bash_completion \
 for i in ${etc}; do
   dir="${i}/bash_completion.d"
   if test -d "${dir}" && has complete && has _init_completion \
-    && test -n "$(find "${dir}" -type f -o -type l -print -quit)"; then
+    && test -n "$(find "${dir}" \( -type f -o -type l \) -print -quit)"; then
     if ! complete -p | grep -q "$(find "${dir}" -type f -o -type l -print0 -quit | xargs grep "^complete -F ")"; then
       for j in "${dir}"/*; do
         . "${j}" || return
@@ -94,7 +94,7 @@ for i in ${etc}; do
 
   dir="${i}/rc.d"
   if test -d "${dir}"; then
-    if test -n "$(find "${dir}" -type f -o -type l -name ".sh" -print -quit)"; then
+    if test -n "$(find "${dir}" \( -type f -o -type l \) -name ".sh" -print -quit)"; then
       for j in "${dir}"/*.sh; do
         . "${j}" || return
       done

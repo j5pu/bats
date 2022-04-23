@@ -42,8 +42,10 @@ envrc() {
     PATH="${SHTS_PATH}"
     if test -f "${SHTS_TOP}/.envrc"; then
       . "${SHTS_TOP}/.envrc" || return
+    elif test -f "${SHTS_TOP}/.env"; then
+      . ideaenv.sh || return
     else
-      >&2 echo "${BASH_SOURCE[0]##*/}: ${SHTS_TOP}/.envrc: No such file"
+      >&2 echo "${BASH_SOURCE[0]##*/}: ${SHTS_TOP}/{.env,.envrc}: No such file"
       return 1
     fi
   else

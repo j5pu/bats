@@ -17,5 +17,5 @@ setup_file() { load ../helpers/helper; }
     assert [ -n "${!var}" ]
     run declare -p "${var}"
     assert_output --regexp "declare -x ${var}="
-  done < <(awk -F '=' '{ print $1 }' "${SHTS_TOP}/.env")
+  done < <(awk -F '=' '/=/ { print $1 }' "${SHTS_TOP}/.env")
 }

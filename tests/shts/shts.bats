@@ -2,12 +2,20 @@
 
 setup_file() {
   load ../helpers/helper
-  export HELP="bats testing wrapper and helper functions when \"${SHTS_TEST_BASENAME}.sh\" sourced"
+  export HELP="bats testing wrapper and helper functions when \"${SHTS_TEST_BASENAME/.sh/}.sh\" sourced"
 }
 
-teardown_file() { ! test -d "${SHTS_OUTPUT}" || rm -rf "${SHTS_OUTPUT}"; }
+teardown_file() {
+  if [ "${SHTS_TEST_BASENAME}" = "${SHTS_TEST_BASENAME/.sh/}" ] && test -d "${SHTS_OUTPUT}"; then
+    rm -rf "${SHTS_OUTPUT}"
+  fi
+}
 
-@test "\$SHTS_TESTS " { assert_dir_exist "${SHTS_TESTS}"; }
+equal() {
+  test -d "$1" || file="$1"
+  assert_equal "$(sed 's|^.* bats ||g; s| --jobs .*||g' <<< "${output}"| tr ' ' '\n' | sort)" \
+    "${file:-$(find "$1" \( -type f -o -type l \) \( -name "*.bats" -o -name "*.shts" \) | sort)}"
+}
 
 @test "${SHTS_TEST_BASENAME} -h " {
   shts::run
@@ -51,21 +59,79 @@ EOF
 @test "${SHTS_TEST_BASENAME} list " {
   shts::run
   assert_success
-  assert_line --regex "${BATS_TEST_FILENAME}"
+  assert_line --regexp "${BATS_TEST_FILENAME/$(pwd)\//}"
 }
 
-@test "${SHTS_TEST_BASENAME} tests/fixtures " {
+@test "${SHTS_TEST_BASENAME} --dry-run --one " {
+  run ${SHTS_TEST_BASENAME} --dry-run
+  assert_line --partial "--jobs ${BATS_NUMBER_OF_PARALLEL_JOBS:-1}"
+
+  # shellcheck disable=SC2030
+  export BATS_NUMBER_OF_PARALLEL_JOBS=5
+  run ${SHTS_TEST_BASENAME} --dry-run
+  assert_success
+  assert_line --partial "--jobs 5"
+
   shts::run
   assert_success
+  assert_line --partial "--jobs 1"
+
+  unset BATS_NUMBER_OF_PARALLEL_JOBS
+  run ${SHTS_TEST_BASENAME} --dry-run
+  assert_line --partial "--jobs 1"
 }
 
-@test "${SHTS_TEST_BASENAME} --verbose tests/fixtures " {
+@test "${SHTS_TEST_BASENAME} --dry-run " {
   shts::run
   assert_success
-  assert_line "# \$\$ run \"\${SHTS_ARRAY[@]}\""
+  equal "${SHTS_TOP}/tests"
+  assert_line --partial "SHTS_TESTS=${SHTS_TOP}"
 }
+
+@test "${SHTS_TEST_BASENAME} --dry-run tests " {
+  shts::run
+  assert_success
+  equal "${SHTS_TOP}/${SHTS_ARRAY[2]}"
+  assert_line --partial "SHTS_TESTS=${SHTS_TOP}/${SHTS_ARRAY[2]}"
+}
+
+@test "${SHTS_TEST_BASENAME} tests/fixtures --dry-run" {
+  shts::run
+  assert_success
+  equal "${SHTS_TOP}/${SHTS_ARRAY[1]}"
+  assert_line --partial "SHTS_TESTS=${SHTS_TOP}/${SHTS_ARRAY[1]}"
+}
+
+@test "${SHTS_TEST_BASENAME} tests/fixtures/tests/test.bats --dry-run" {
+  shts::run
+  assert_success
+  equal "${SHTS_TOP}/${SHTS_ARRAY[1]}"
+  assert_line --partial "SHTS_TESTS=${SHTS_TOP}/$(dirname "${SHTS_ARRAY[1]}")"
+}
+
+@test "sh -c 'cd tests/fixtures/${SHTS_TEST_BASENAME} && ${SHTS_TEST_BASENAME} --dry-run' " {
+  shts::run
+  assert_success
+  equal "${SHTS_TOP}/tests/fixtures/${SHTS_TEST_BASENAME}/test.bats"
+  assert_line --partial "SHTS_TESTS=${SHTS_TOP}/tests/fixtures/${SHTS_TEST_BASENAME}"
+}
+
+@test "${SHTS_TEST_BASENAME} --verbose --dry-run tests/fixtures " {
+  shts::run
+  assert_success
+  assert_line --partial "--print-output-on-failure --gather-test-outputs-in ${SHTS_TOP}/.output \
+--no-tempdir-cleanup --output ${SHTS_TOP}/.output --show-output-of-passing-tests --timing --trace --verbose-run"
+}
+#
+#@test "${SHTS_TEST_BASENAME} --verbose tests/fixtures " {
+#  [ "${SHTS_TEST_BASENAME}" = "${SHTS_TEST_BASENAME/.sh/}" ] || skip "output is removed in teardown_file"
+#  shts::run
+#  assert_success
+#  assert_line "# \$\$ run \"\${SHTS_ARRAY[@]}\""
+#}
 
 @test "${SHTS_TEST_BASENAME} tests/fixtures --verbose " {
+  [ "${SHTS_TEST_BASENAME}" = "${SHTS_TEST_BASENAME/.sh/}" ] || skip "output is removed in teardown_file"
   shts::run
   assert_success
   assert_line "# \$\$ run \"\${SHTS_ARRAY[@]}\""
@@ -85,12 +151,59 @@ EOF
   shts::run
   assert_failure
   assert_line "${HELP}"
-  assert_line "${SHTS_TEST_BASENAME}: /tmp: invalid argument/test path"
+  assert_line "${SHTS_TEST_BASENAME/.sh/}: /tmp: invalid argument/test path"
+}
+
+@test "git init " {
+  repo="$(shts::tmp "${SHTS_TEST_BASENAME}/git_init")"
+  cd "${repo}"
+  shts::run
+  run "${SHTS_TEST_BASENAME}"
+  assert_failure
+  assert_output "${SHTS_TEST_BASENAME/.sh/}: ${PWD}: no bats/shts test found"
+}
+
+@test "mkdir src; touch 'test.bats' " {
+  repo="$(shts::tmp "${SHTS_TEST_BASENAME}/touch_test.bats")"
+  cd "${repo}"
+  git init
+  shts::run
+  run "${SHTS_TEST_BASENAME}"
+  assert_failure
+  assert_output "${SHTS_TEST_BASENAME/.sh/}: ${PWD}: no bats/shts test found"
+}
+
+@test "mkdir test " {
+  repo="$(shts::tmp "${SHTS_TEST_BASENAME}/mkdir_test")"
+  cd "${repo}"
+  git init
+  shts::run
+  touch test/test.bats
+  run "${SHTS_TEST_BASENAME}"
+  assert_success
+  assert_output "1..0"
+}
+
+@test "mkdir __tests__ " {
+  repo="$(shts::tmp "${SHTS_TEST_BASENAME}/mkdir__test__")"
+  cd "${repo}"
+  git init
+  shts::run
+  touch __tests__/test.bats
+  run "${SHTS_TEST_BASENAME}"
+  assert_success
+  assert_output "1..0"
+}
+
+@test "sh -c 'cd /tmp && ${SHTS_TEST_BASENAME}' " {
+  shts::run
+  assert_failure
+  assert_output "${SHTS_TEST_BASENAME/.sh/}: /tmp: not a git repository (or any of the parent directories)"
 }
 
 @test "${SHTS_TEST_BASENAME} foo " {
   shts::run
   assert_failure
   assert_line "${HELP}"
-  assert_line "${SHTS_TEST_BASENAME}: foo: invalid argument/test path"
+  assert_line "${SHTS_TEST_BASENAME/.sh/}: foo: invalid argument/test path"
 }
