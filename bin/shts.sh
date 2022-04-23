@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2155,SC2046
 
+#
+# Helper Functions and Additional Tests Variables and Functions when running bats tests $BATS_ROOT
+
 : "${BASH_SOURCE?}"
 
 # <html><h2>Saved $PATH on First Suite Test Start</h2>
@@ -12,12 +15,20 @@ export SHTS_PATH="${PATH}"
 # <p><strong><code>$SHTS_TOP</code></strong> contains the git top directory using $PWD.</p>
 # </html>
 export SHTS_TOP="$(git rev-parse --show-toplevel 2>/dev/null || true)"
-[ ! "${BATS_ROOT-}" ] || [ ! "${SHTS_TOP-}" ] || cd "${SHTS_TOP}" || return
 
-# <html><h2>Git Top Basename</h2>
-# <p><strong><code>$SHTS_TOP_NAME</code></strong> basename of git top directory when sourced from a git dir.</p>
-# </html>
-export SHTS_BASENAME="${SHTS_TOP##*/}"
+__brew_lib="$(brew --prefix)/lib"
+
+#######################################
+# private function to list all functions exported to be used in shts.ss and shts
+# Globals:
+#   SHTS_ARRAY
+#   BATS_TEST_DESCRIPTION
+#######################################
+__shts_functions() {
+  file_functions "${__brew_lib}"/*/src/*.bash
+  file_functions "${BASH_SOURCE[0]}"
+  awk -F '(' "/^  $(basename "${BASH_SOURCE[0]}" .sh)::.*\(\)/ { gsub(/ /,\"\",\$1); print \$1 }" "${BASH_SOURCE[0]}"
+}
 
 #######################################
 # Restores $PATH to $SHTS_PATH and sources .envrc.
@@ -46,7 +57,7 @@ envrc() {
 # Arguments:
 #  None
 #######################################
-file_functions() { awk -F '(' '/^[a-z].*\(\)/ && ! /=/ { print $1 }' "$@"; }
+file_functions() { awk -F '(' '/^[a-z].*\(\)/ && ! /=\(/ { print $1 }' "$@"; }
 
 #######################################
 # checks if function is exported
@@ -66,54 +77,27 @@ func_exported() {
   fi
 }
 
-#######################################
-# running as a GitHub action
-# Globals:
-#   GITHUB_RUN_ID
-# Arguments:
-#  None
-# Returns:
-#   1 if not running on GitHub and 0 if running as an action
-#######################################
-isaction() { [ "${GITHUB_ACTIONS-}" = "true" ]; }
-
-#######################################
-# running on debian
-# Arguments:
-#  None
-# Returns:
-#   1 if not running on debian and 0 if running on debian
-#######################################
-isdebian() { test -f /etc/os-release || grep -q debian /etc/os-release; }
-
-#######################################
-# running on macOS
-# Arguments:
-#  None
-# Returns:
-#   1 if not running on macOS and 0 if running on macOS
-#######################################
-ismacos() { [ "$(uname -s)" = "Darwin" ]; }
-
-export -f $(file_functions "${BASH_SOURCE[0]}")
-
-#######################################
-# Caution:
-#   Add functions below here to the export -f
-#######################################
-if [ "${BATS_ROOT-}" ] || [ "${0##*/}.sh" = "${BASH_SOURCE[0]##*/}" ]; then
-  # Variables here are not updated when tests executed with `shts` since they are exported
-  # and when file is sourced returns 0 when variables are defined.
-
+if [ "${BASH_SOURCE##*/}" = "${0##*/}" ]; then
+  set -eu
+  [ "${1-}" != "functions" ] || { __shts_functions | sort; exit; }
+  ${0%.*} "$@"
+elif [ "${BATS_ROOT-}" ] || [ "${0##*/}.sh" = "${BASH_SOURCE[0]##*/}" ]; then
   # <html><h2>Bats Description Array</h2>
   # <p><strong><code>$SHTS_ARRAY</code></strong> created by bats::description() with $BATS_TEST_DESCRIPTION.</p>
   # </html>
   export SHTS_ARRAY=()
 
+  # <html><h2>Git Top Basename</h2>
+  # <p><strong><code>$SHTS_TOP_NAME</code></strong> basename of git top directory when sourced from a git dir.</p>
+  # </html>
+  export SHTS_BASENAME="${SHTS_TOP##*/}"
+
   # <html><h2>Test File Basename Without Suffix .bats</h2>
   # <p><strong><code>$SHTS_TEST_BASENAME</code></strong> from $BATS_TEST_FILENAME.</p>
   # </html>
-  export SHTS_TEST_BASENAME="$(basename "${BATS_TEST_FILENAME-}" .bats)"
+  export SHTS_TEST_BASENAME="$(basename "${BATS_TEST_FILENAME-}" .bats | sed 's/.shts$//')"
+
+  ! func_exported 2>/dev/null || return 0
 
   #######################################
   # creates $SHTS_ARRAY array from $BATS_TEST_DESCRIPTION or argument
@@ -123,6 +107,25 @@ if [ "${BATS_ROOT-}" ] || [ "${0##*/}.sh" = "${BASH_SOURCE[0]##*/}" ]; then
   #######################################
   # shellcheck disable=SC2086
   shts::array() { mapfile -t SHTS_ARRAY < <(xargs printf '%s\n' <<<${BATS_TEST_DESCRIPTION}); }
+
+  #######################################
+  # creates $SHTS_ARRAY array from $BATS_TEST_DESCRIPTION or argument
+  # Globals:
+  #   SHTS_ARRAY
+  #   BATS_TEST_DESCRIPTION
+  #######################################
+  shts::basename() {
+    basename "${BATS_TEST_FILENAME-}" .bats | sed 's/.shts$//';
+    }
+
+  #######################################
+  # Changes to top repository path \$SHTS_TOP and top path found, otherwise changes to the \$SHTS_TESTS
+  # Globals:
+  #   BATS_ROOT
+  #   SHTS_TESTS
+  #   SHTS_TOP
+  #######################################
+  shts::cd() { [ ! "${BATS_ROOT-}" ] || cd "${SHTS_TOP:-${SHTS_TESTS}}" || return; }
 
   #######################################
   # create a temporary directory in $BATS_FILE_TMPDIR if arg is provided
@@ -153,27 +156,16 @@ if [ "${BATS_ROOT-}" ] || [ "${0##*/}.sh" = "${BASH_SOURCE[0]##*/}" ]; then
     run "${SHTS_ARRAY[@]}"
   }
 
-  export -f shts::array shts::run shts::tmp
-
-  envrc
-
-  lib="$(brew --prefix)/lib"
   for i in bats-assert bats-file bats-support; do
-    if ! . "${lib}/${i}/load.bash"; then
-      >&2 echo "${BASH_SOURCE[0]}: ${lib}/${i}/load.bash: sourcing error"
+    if ! . "${__brew_lib}/${i}/load.bash"; then
+      >&2 echo "${BASH_SOURCE[0]}: ${__brew_lib}/${i}/load.bash: sourcing error"
       return 1
     fi
-  done
+  done; unset i
 
-  export -f $(file_functions "${lib}"/*/src/*.bash)
+  shts::cd
+  envrc
+
+  export -f $(__shts_functions)
   func_exported assert || return
-
-  unset i lib
-elif [ "${BASH_SOURCE##*/}" = "${0##*/}" ]; then
-  if test $# -gt0; then
-    ${0%.*} "$@"
-  else
-    ${0%.*} help
-    exit 1
-  fi
 fi

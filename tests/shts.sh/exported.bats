@@ -5,15 +5,12 @@ setup_file() {
   FOO="$(shts::tmp foo)"; export FOO
 }
 
-@test "shts:tmp foo " {
-  assert_dir_exist "${FOO}"
+@test "func_exported assert " {
+  shts::run
+  assert_success
 }
 
-@test "shts:tmp foo  persists" {
-  assert_dir_exist "${FOO}"
-}
-
-@test "func_exported assert_file_exist " {
+@test "func_exported envrc " {
   shts::run
   assert_success
 }
@@ -21,4 +18,23 @@ setup_file() {
 @test "func_exported shts::array " {
   shts::run
   assert_success
+}
+
+@test "func_exported assert_socket_not_exist " {
+  shts::run
+  assert_success
+
+  unset -f assert_socket_not_exist
+  setup_file
+
+  shts::run
+  assert_failure
+}
+
+@test "shts:tmp foo " {
+  assert_dir_exist "${FOO}"
+}
+
+@test "shts:tmp foo persists" {
+  assert_dir_exist "${FOO}"
 }

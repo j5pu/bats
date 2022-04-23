@@ -113,7 +113,7 @@ _bats::run() {
         --show-output-of-passing-tests --timing --trace --verbose-run) ;;
       *)
         { test -d "$1" && test -n "$(find "$1" -type f -name "*.bats")"; } \
-          || { test -f "$1" && test "${1##*.}" = "bats"; } \
+          || { test -f "$1" && [[ "${1##*.}" =~ bats|shts ]]; } \
           || { echo "${0##*/}: $1: invalid argument"; _bats::usage 1; }
         if test -f "$1"; then
           directory="$(dirname "$1")"

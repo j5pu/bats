@@ -1,0 +1,50 @@
+#!/bin/sh
+# shellcheck disable=SC2064
+
+#
+# sets or unset gh as git credential manager
+
+set -eu
+
+#######################################
+# show usage
+# Globals:
+#  UNSET
+# Arguments:
+#   1
+#######################################
+help() {
+  if test $# -eq 1; then
+    case "$1" in
+      -h|--help|help) rc=0 ;;
+      -*) >&2 echo "${0##*/}: $1: invalid option" ;;
+      *) return 0 ;;
+    esac
+  fi
+
+  >&2 cat <<EOF
+usage: ${0##*/} module
+   or: ${0##*/} [-h|--help|help]
+
+check is python module is installed, no argument is help
+
+Commands:
+   -h, --help, help   display this help and exit.
+
+Returns:
+   1 if module is not installed
+EOF
+  exit "${rc:-1}"
+}
+
+#######################################
+# check is python module is installed
+# Arguments:
+#  1 module name
+#######################################
+main() {
+  help "$@"
+  python3 -c "import $1" 2>/dev/null
+}
+
+main "$@"

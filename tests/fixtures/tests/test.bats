@@ -2,4 +2,4 @@
 
 setup_file() { source shts.sh; }
 
-@test "tests" { assert true; }
+@test "false " { shts::run; assert_failure; }

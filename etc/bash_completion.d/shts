@@ -1,0 +1,23 @@
+# shellcheck shell=bash
+
+#######################################
+# shts completions
+# Globals:
+#   COMPREPLY
+# Arguments:
+#   1     name of the command whose arguments are being completed
+#   2     word being completed ("cur")
+#   3     word preceding the word being completed or $1 when is the first word ("prev")
+#######################################
+_shts() {
+  local commands=() list=() options=()
+
+  ! [[ "${COMP_WORDS[1]}" =~ -h|--help|help|commands|functions|list ]] || return 0
+  [[ $COMP_CWORD -ne 1 ]] || mapfile -t commands < <("$1" commands)
+  mapfile -t list < <(comm -23 <("$1" list) <(printarr "${COMP_WORDS[@]:1:COMP_CWORD-1}"))
+  mapfile -t options < <(comm -23 <(printarr --dry-run --verbose) <(printarr "${COMP_WORDS[@]:1:COMP_CWORD-1}"))
+  mapfile -t COMPREPLY < <(compgen -o nosort -W "${commands[*]} ${options[*]} ${list[*]}" -- "$2")
+}
+
+complete -F _shts shts
+complete -F _shts shts.sh

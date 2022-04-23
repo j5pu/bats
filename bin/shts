@@ -6,32 +6,61 @@ shopt -s inherit_errexit
 . "${0}.sh"
 
 #######################################
+# show error and exit 1
+# Arguments:
+#   * message
+#######################################
+die() { >&2 echo "${script}: ${*}"; exit 1; }
+
+#######################################
 # show help and exit
 # Arguments:
 #   None
 #######################################
 help() {
+  local rc=$?
+  [ ! "${1-}" ] || echo -e "${script}: ${1}: invalid argument/test path\n"
   cat <<EOF
-usage: ${0##*/} [<tests>]
-   or: ${0##*/} -h|-help|commands|help|list|verbose
-   or: . ${0##*/}
-   or: . ${0##*/} [-h|-help|commands|help|list|verbose]
+usage: ${script} [<tests>] [<options>]
+   or: ${script} -h|-help|commands|help|functions|verbose
+   or: . ${script%.*}.sh
 
-bats testing wrapper and helper functions
+bats testing wrapper and helper functions when "${script%.*}.sh" sourced
 
 <tests> is the path to a Bats test file, or the path to a directory containing Bats test files (ending with ".bats")
-if no <tests> run for: 'tests', 'test', '__tests__' or first directory found with ".bats" files.
+if no <tests> run for: first directory found with ".bats" files in working directory,
+or either 'tests', 'test' or '__tests__' under top repository path
+
+Changes to top repository path \$SHTS_TOP when running testa and top path found, otherwise changes to the \$SHTS_TESTS
 
 Commands:
    -h, --help, help  display this help and exit
-   commands          display ${0##*/}' commands
-   list              display list of functions available when ${0##*/} is sourced
-   verbose           run bats tests showing all outputs, with trace and not cleaning the tempdir
+   commands          display ${script}' commands
+   functions         display functions available when ${script} is sourced
+   list              display tests found relative to current working directory
+
+Options:
+   --dry-run         show command that would be executed and globals
+   --verbose         run bats tests showing all outputs, with trace and not cleaning the tempdir
 
 Globals:
+   SHTS_OUTPUT      verbose output directory
    SHTS_TESTS       path to the test directory, passed as argument or found by 'shts'
 EOF
-  exit "${1:-0}"
+  exit $rc
+}
+
+#######################################
+# find tests in directory "*.bats" and ".shts"
+# Globals:
+#   OPTS_BACK
+# Arguments:
+#   None
+# Returns:
+#  1 if not tests found or argument is not a directory
+#######################################
+tests() {
+  test -d "$1" && mapfile -t TESTS < <(find "$(realpath "$1")" -type f \( -name "*.bats" -o -name "*.shts" \));
 }
 
 #######################################
@@ -42,53 +71,50 @@ EOF
 #   None
 #######################################
 main() {
-  local args=(--jobs "${BATS_NUMBER_OF_PARALLEL_JOBS:-1}" --print-output-on-failure --recursive)
-  local output="${SHTS_TOP:-.}/.output" tests=()
+  script="${0##*/}"
+  local args=(--jobs "${BATS_NUMBER_OF_PARALLEL_JOBS:-1}" --print-output-on-failure)
+  local directory dry=false list=false output="${SHTS_TOP:-.}/.output"
 
   rm -rf "${output}"
 
   for arg; do
     case "${arg}" in
       -h|--help|help) help ;;
-      commands) printf '%s\n' -h --help help "${arg}" list verbose | sort; exit ;;
-      list)
-        { file_functions "$(brew --prefix)"/lib/bats-*/src/*.bash "${0}.sh"; \
-          awk -F '(' "/^  ${0##*/}::.*\(\)/ { gsub(/ /,\"\",\$1); print \$1 }" "${0}.sh"; } | sort
-        exit
-        ;;
-      verbose) args+=(--gather-test-outputs-in "${output}" --no-tempdir-cleanup --output "${output}" \
+      --dry-run) dry=true ;;
+      --verbose) args+=(--gather-test-outputs-in "${output}" --no-tempdir-cleanup --output "${output}" \
         --show-output-of-passing-tests --timing --trace --verbose-run) ;;
+      commands) printf '%s\n' -h --help help "${arg}" functions list| sort; exit ;;
+      functions) "${0}.sh" "${arg}"; exit ;;
+      list) list=true ;;
       *)
-        { test -d "${arg}" && test -n "$(find "${arg}" -type f -name "*.bats")"; } \
-          || { test -f "${arg}" && test "${arg##*.}" = "bats"; } \
-          || { >&2 echo -e "${0##*/}: ${arg}: invalid argument/test path\n"; help 1; }
-        tests=("${arg}")
+        { test -f "${arg}" && [[ "${arg##*.}" =~ bats|shts ]] && directory="$(dirname "${arg}")" \
+          && TESTS=("$(realpath "${arg}")"); } || { tests "${arg}" && directory="${arg}"; } || help "${arg}"
+        directory="$(realpath "${directory}")"
         ;;
     esac
   done
 
-  if [ ! "${tests-}" ]; then
-    if [ ! "${SHTS_TOP-}" ]; then
-      >&2 echo "${0##*/}: ${PWD}: not a git repository (or any of the parent directories)"
-      exit 1
-    fi
-    for i in tests test __tests__; do
-      tests=("${SHTS_TOP}/${i}")
-      if test -d "${tests[0]}"; then
-        break
-      fi
-    done
-    if [ ! "${tests-}" ]; then
-      tests=(find . -type f -name "*.bats" -exec dirname "{}" \; -quit)
-      if [ ! "${tests-}" ]; then
-        >&2 echo "${0##*/}: ${PWD}: no bats test found"
-        exit 1
-      fi
+  if [ ! "${TESTS-}" ]; then
+    if tests "$(pwd)"; then
+      directory="$(pwd)"
+    elif [ "${SHTS_TOP-}" ]; then
+      for i in tests test __tests__; do
+        directory="${SHTS_TOP}/${i}"
+        ! tests "${directory}" || break
+      done
+      [ "${TESTS-}" ] || die "${PWD}: no bats/shts test found"
+    else
+      die "${PWD}: not a git repository (or any of the parent directories)"
     fi
   fi
 
-  tests=("$(realpath "${tests[0]}")")
-  bats "${tests[@]}" "${args[@]}"
+  if $list; then
+    printarr "${TESTS[@]}" | sed "s|$(pwd)/||"
+  elif $dry; then
+    echo SHTS_OUTPUT="${output}" SHTS_TESTS="$(realpath "${directory}")" bats "${TESTS[@]}" "${args[@]}"
+  else
+    SHTS_OUTPUT="${output}" SHTS_TESTS="$(realpath "${directory}")" bats "${TESTS[@]}" "${args[@]}"
+  fi
 }
 
 main "$@"

@@ -14,9 +14,6 @@ publish: tests
 	@git push --quiet
 
 tests: bats
-	@bin/bats.bash
-
-test: bats
 	@bin/shts
 
 

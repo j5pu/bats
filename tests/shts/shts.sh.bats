@@ -2,7 +2,7 @@
 
 setup_file() {
   load ../helpers/helper
-  export HELP="bats testing wrapper and helper functions when \"${SHTS_TEST_BASENAME}.sh\" sourced"
+  export HELP="bats testing wrapper and helper functions when \"${SHTS_TEST_BASENAME}\" sourced"
 }
 
 teardown_file() { ! test -d "${SHTS_OUTPUT}" || rm -rf "${SHTS_OUTPUT}"; }
