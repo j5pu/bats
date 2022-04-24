@@ -5,6 +5,26 @@ shopt -s inherit_errexit
 
 . "${0}.sh"
 
+# Array with Command Executed (variable set by: shts).
+#
+export SHTS_COMMAND
+
+# Gather the output of failing *and* passing tests as files in directory (variable set by: shts).
+#
+export SHTS_GATHER
+
+# Directory to write report files (variable set by: shts).
+#
+export SHTS_OUTPUT
+
+# Path to the test directory, passed as argument or found by 'shts' (variable set by: shts).
+#
+export SHTS_TEST_DIR
+
+# Array of tests found (variable set by: shts).
+#
+declare -a SHTS_TESTS
+
 #######################################
 # show error and exit 1
 # Arguments:
@@ -19,7 +39,7 @@ die() { >&2 echo "${script}: ${*}"; exit 1; }
 #######################################
 help() {
   local rc=$?
-  [ ! "${1-}" ] || echo -e "${script}: ${1}: invalid argument/test path\n"
+  [ ! "${1-}" ] || { echo -e "${script}: ${1}: ${2}\n"; rc=1; }
   cat <<EOF
 usage: ${script} [<tests>] [<options>]
    or: ${script} -h|-help|commands|help|functions|verbose
@@ -31,7 +51,8 @@ bats testing wrapper and helper functions when "${script%.*}.sh" sourced
 if no <tests> run for: first directory found with ".bats" files in working directory,
 or either 'tests', 'test' or '__tests__' under top repository path
 
-Changes to top repository path \$SHTS_TOP when running testa and top path found, otherwise changes to the \$SHTS_TESTS
+Changes to top repository path \$SHTS_TOP when running testa and top path found, otherwise changes
+to the \$SHTS_TEST_DIR
 
 Commands:
    -h, --help, help  display this help and exit
@@ -45,25 +66,45 @@ Options:
    --verbose         run bats tests showing all outputs, with trace and not cleaning the tempdir
 
 Globals:
-   SHTS_OUTPUT      verbose output directory
-   SHTS_TESTS       path to the test directory, passed as argument or found by 'shts'
+   SHTS_COMMAND     Array with Command Executed.
+   SHTS_GATHER      Gather the output of failing *and* passing tests as files in directory [--gather-test-outputs-in].
+   SHTS_OUTPUT      Directory to write report files [-o|--output].
+   SHTS_TEST_DIR    Path to the test directory, passed as argument or found by 'shts'.
+   SHTS_TESTS       Array of tests found.
 EOF
   exit $rc
 }
 
 #######################################
-# find tests in directory "*.bats" and ".shts"
+# check if is file, have suffix "*.bats" and ".shts" and adds to SHTS_TESTS
 # Globals:
-#   OPTS_BACK
+#   SHTS_TESTS
 # Arguments:
-#   None
+#   1 file
 # Returns:
-#  1 if not tests found or argument is not a directory
+#  1 invalid file
 #######################################
-tests() {
-  test -d "$1" || return
-  mapfile -t TESTS < <(find "$(realpath "$1")" \( -type f -o -type l \) \( -name "*.bats" -o -name "*.shts" \)) \
-    && [ "${TESTS-}" ];
+file() {
+  [[ "${1##*.}" =~ bats|shts ]] || return
+  SHTS_TESTS+=("$(realpath "$1")")
+}
+
+#######################################
+# find tests in directory "*.bats" and ".shts" and adds to SHTS_TESTS
+# Globals:
+#   SHTS_TESTS
+# Arguments:
+#   1 directory
+#   2 message to exit if not found
+# Returns:
+#  1 if not tests found
+#######################################
+directory() {
+  local tests
+  [ "$(realpath "$1")" != "$(realpath "${HOME}")" ] || die "$1" "is home directory"
+  mapfile -t tests < <(find "$(realpath "$1")" \( -type f -o -type l \) \( -name "*.bats" -o -name "*.shts" \))
+  [ "${tests-}" ] || return
+  SHTS_TESTS+=("${tests[@]}")
 }
 
 #######################################
@@ -75,51 +116,135 @@ tests() {
 #######################################
 main() {
   script="${0##*/}"
-  local args=(--print-output-on-failure) jobs=()
-  local directory dry=false list=false output="${SHTS_TOP:-.}/.output"
+  local outputs; outputs="$(realpath "${SHTS_TOP:-.}/.output")"
 
-  rm -rf "${output}"
+  local directory
+  local dry=false
+  local gather_test_outputs_in=false
+  local gather_dir=("${outputs}/test")
+  local list=false
+  local no_parallelize_across_files=()
+  local no_parallelize_within_files=()
+  local no_tempdir_cleanup=false
+  local jobs=(-j "${BATS_NUMBER_OF_PARALLEL_JOBS:-400}")
+  local options=()
+  local one=false
+  local output=false
+  local output_dir=("${outputs}/output")
+  local print_output_on_failure=(--print-output-on-failure)
+  local show_output_of_passing_tests=false
+  local timing=false
+  local trace=false
+  local verbose=false
+  local verbose_run=false
 
-  for arg; do
-    case "${arg}" in
+  while (( $# )); do
+    case "$1" in
       -h|--help|help) help ;;
-      --dry-run) dry=true ;;
-      --one) unset BATS_NUMBER_OF_PARALLEL_JOBS ;;
-      --verbose) args+=(--gather-test-outputs-in "${output}" --no-tempdir-cleanup --output "${output}" \
-        --show-output-of-passing-tests --timing --trace --verbose-run) ;;
-      commands) printf '%s\n' -h --help help "${arg}" functions list| sort; exit ;;
-      functions) "${0}.sh" "${arg}"; exit ;;
+      --code-quote-style) options+=("$1" "$2"); shift ;;
+      -c|--count) options+=("$1") ;;
+      -f|--filter) options+=("$1" "$2"); shift ;;
+      -F|--formatter) options+=("$1" "$2"); shift ;;
+      -d|--dry-run) dry=true ;;
+      -j|--jobs) jobs=(-j "$2"); shift;;
+      --gather-test-outputs-in)
+        gather_test_outputs_in=true; gather_dir=("$(realpath "$2")"); options+=("$1" "$2"); shift ;;
+      --no-parallelize-across-files) no_parallelize_across_files=("$1") ;;
+      --no-parallelize-within-files) no_parallelize_within_files=("$1") ;;
+      --no-tempdir-cleanup) no_tempdir_cleanup=true; options+=("$1") ;;
+      --one) one=true ;;
+      -p|--pretty) options+=("$1") ;;
+      --report-formatter) options+=("$1" "$2"); shift ;;
+      -r|--recursive) : ;;
+      -o|--output) output=true; output_dir=("$(realpath "$2")"); options+=("$1" "$2"); shift ;;
+      --print-output-on-failure) : ;;
+      --show-output-of-passing-tests) show_output_of_passing_tests=true; options+=("$1") ;;
+      --tap) options+=("$1") ;;
+      -T|--timing) timing=true; options+=("$1") ;;
+      -x|--trace) trace=true; options+=("$1") ;;
+      --verbose) verbose=true ;;
+      --verbose-run) verbose_run=true; options+=("$1") ;;
+      -v|--version) options+=("$1") ;;
+      commands) printf '%s\n' -h --help help "$1" functions list | sort; exit ;;
+      functions) "${0}.sh" "$1"; exit ;;
       list) list=true ;;
+      -*) help "$1" "invalid option" ;;
       *)
-        { test -f "${arg}" && [[ "${arg##*.}" =~ bats|shts ]] && directory="$(dirname "${arg}")" \
-          && TESTS=("$(realpath "${arg}")"); } || tests "${arg}" || help "${arg}"
-        directory="$(realpath "${directory:-${arg}}")"
+        test -e "$1" || help "$1" "no such file, directory or invalid command"
+        test -d "$1" || file "$1" || die "$1" "invalid .bats or .shts extension"
+        directory "$1" || die "$1" "no .bats or .shts tests found in directory"
         ;;
     esac
+    shift
   done
 
-  jobs=(--jobs "${BATS_NUMBER_OF_PARALLEL_JOBS:-1}")
+  [ ! "${no_parallelize_across_files-}" ] || [ "${jobs-}" ] || jobs=(-j 2)
+  [ ! "${no_parallelize_within_files-}" ] || [ "${jobs-}" ] || jobs=(-j 2)
+  ! $one || { jobs=(); no_parallelize_across_files=(); no_parallelize_within_files=(); }
 
-  if [ ! "${TESTS-}" ]; then
-    if tests "$(pwd)"; then
-      directory="$(pwd)"
-    elif [ "${SHTS_TOP-}" ]; then
-      for i in tests test __tests__; do
+  if $verbose; then
+    $gather_test_outputs_in ||{ gather_test_outputs_in=true; options+=("--gather-test-outputs-in" "${output_dir[@]}"); }
+    $no_tempdir_cleanup || options+=("--no-tempdir-cleanup")
+    $output || { output=true; options+=("--output" "${output_dir[@]}"); }
+    $show_output_of_passing_tests || options+=("--show-output-of-passing-tests")
+    $timing || options+=("--timing")
+    $trace || options+=("--trace")
+    $verbose_run || options+=("--verbose-run")
+  fi
+
+  if { $gather_test_outputs_in || $output; } && test -d "${outputs}"; then
+    rm -rf "${outputs}"
+    mkdir "${outputs}"
+  fi
+
+  ! $gather_test_outputs_in || ! test -d "${gather_dir[@]}" || rm -rf "${gather_dir[@]}"
+  ! $output || { rm -rf "${output_dir[@]}"; mkdir "${output_dir[@]}"; }
+
+
+  if [ ! "${SHTS_TESTS-}" ] && ! tests "$(pwd)"; then
+    if [ "${SHTS_TOP-}" ]; then
+      for i in __tests__ test test; do
         directory="${SHTS_TOP}/${i}"
-        ! tests "${directory}" || break
+        ! test -d "${directory}" || directory "${directory}" || true
       done
-      [ "${TESTS-}" ] || die "${PWD}: no bats/shts test found"
+      [ "${SHTS_TESTS-}" ] || die "${SHTS_TOP}/{__tests__,test,tests}: no .bats or .shts test found"
     else
       die "${PWD}: not a git repository (or any of the parent directories)"
     fi
   fi
 
+  SHTS_GATHER="${gather_dir[*]}"
+  SHTS_OUTPUT="${output_dir[*]}"
+
+  local directories=()
+  for i in "${SHTS_TESTS[@]}"; do
+    [ -d "${i}" ] || { directories+=("$(dirname "${i}")"); continue; }
+    directories+=("${i}")
+  done
+  mapfile -t directories < <(printf '%s\n' "${directories[@]}" | sort -u)
+  SHTS_TEST_DIR="$(find "${directories[@]}" -mindepth 0 -maxdepth 0 -type d -print -quit)"
+
+  SHTS_COMMAND=(
+    bats
+    "${jobs[@]}"
+    "${no_parallelize_across_files[@]}"
+    "${no_parallelize_within_files[@]}"
+    "${print_output_on_failure[@]}"
+    "${options[@]}"
+    "${SHTS_TESTS[@]}"
+  )
+
   if $list; then
-    printarr "${TESTS[@]}" | sed "s|$(pwd)/||"
+    printarr "${SHTS_TESTS[@]}" | sed "s|$(pwd)/||"
   elif $dry; then
-    echo SHTS_OUTPUT="${output}" SHTS_TESTS="$(realpath "${directory}")" bats "${TESTS[@]}" "${jobs[@]}" "${args[@]}"
+    echo SHTS_GATHER="${SHTS_GATHER}" SHTS_OUTPUT="${SHTS_OUTPUT}" SHTS_TEST_DIR="${SHTS_TEST_DIR}" "${SHTS_COMMAND[@]}"
   else
-    SHTS_OUTPUT="${output}" SHTS_TESTS="$(realpath "${directory}")" bats "${TESTS[@]}" "${jobs[@]}" "${args[@]}"
+    SHTS_GATHER="${SHTS_GATHER}" SHTS_OUTPUT="${SHTS_OUTPUT}" SHTS_TEST_DIR="${SHTS_TEST_DIR}" "${SHTS_COMMAND[@]}"
+  fi
+
+  if $verbose; then
+    >&2 echo SHTS_GATHER: "${gather_dir[*]}"
+    >&2 echo SHTS_OUTPUT: "${output_dir[*]}"
   fi
 }
 

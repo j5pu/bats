@@ -84,79 +84,100 @@ if [ "${BASH_SOURCE##*/}" = "${0##*/}" ]; then
   [ "${1-}" != "functions" ] || { __shts_functions | sort; exit; }
   ${0%.*} "$@"
 elif [ "${BATS_ROOT-}" ] || [ "${0##*/}.sh" = "${BASH_SOURCE[0]##*/}" ]; then
-  # <html><h2>Bats Description Array</h2>
-  # <p><strong><code>$SHTS_ARRAY</code></strong> created by bats::description() with $BATS_TEST_DESCRIPTION.</p>
-  # </html>
-  export SHTS_ARRAY=()
+# <html><h2>Bats Description Array</h2>
+# <p><strong><code>$SHTS_ARRAY</code></strong> created by bats::description() with $BATS_TEST_DESCRIPTION.</p>
+# </html>
+export SHTS_ARRAY=()
 
-  # <html><h2>Git Top Basename</h2>
-  # <p><strong><code>$SHTS_TOP_NAME</code></strong> basename of git top directory when sourced from a git dir.</p>
-  # </html>
-  export SHTS_BASENAME="${SHTS_TOP##*/}"
+# <html><h2>Git Top Basename</h2>
+# <p><strong><code>$SHTS_TOP_NAME</code></strong> basename of git top directory when sourced from a git dir.</p>
+# </html>
+export SHTS_BASENAME="${SHTS_TOP##*/}"
 
-  # <html><h2>Test File Basename Without Suffix .bats</h2>
-  # <p><strong><code>$SHTS_TEST_BASENAME</code></strong> from $BATS_TEST_FILENAME.</p>
-  # </html>
-  export SHTS_TEST_BASENAME="$(basename "${BATS_TEST_FILENAME-}" .bats | sed 's/.shts$//')"
+# Array with Command Executed (variable set by: shts).
+#
+export SHTS_COMMAND
+
+# Gather the output of failing *and* passing tests as files in directory [--gather-test-outputs-in] (variable set by: shts).
+#
+export SHTS_GATHER
+
+# Directory to write report files [-o|--output] (variable set by: shts).
+#
+export SHTS_OUTPUT
+
+# <html><h2>Test File Basename Without Suffix .bats</h2>
+# <p><strong><code>$SHTS_TEST_BASENAME</code></strong> from $BATS_TEST_FILENAME.</p>
+# </html>
+export SHTS_TEST_BASENAME="$(basename "${BATS_TEST_FILENAME-}" .bats | sed 's/.shts$//')"
+
+# Path to the test directory, passed as argument or found by 'shts' (variable set by: shts).
+#
+export SHTS_TEST_DIR
+
+# Array of tests found (variable set by: shts).
+#
+export SHTS_TESTS
+
 
   ! func_exported 2>/dev/null || return 0
 
-  #######################################
-  # creates $SHTS_ARRAY array from $BATS_TEST_DESCRIPTION or argument
-  # Globals:
-  #   SHTS_ARRAY
-  #   BATS_TEST_DESCRIPTION
-  #######################################
-  # shellcheck disable=SC2086
-  shts::array() { mapfile -t SHTS_ARRAY < <(xargs printf '%s\n' <<<${BATS_TEST_DESCRIPTION}); }
+#######################################
+# creates $SHTS_ARRAY array from $BATS_TEST_DESCRIPTION or argument
+# Globals:
+#   SHTS_ARRAY
+#   BATS_TEST_DESCRIPTION
+#######################################
+# shellcheck disable=SC2086
+shts::array() { mapfile -t SHTS_ARRAY < <(xargs printf '%s\n' <<<${BATS_TEST_DESCRIPTION}); }
 
-  #######################################
-  # creates $SHTS_ARRAY array from $BATS_TEST_DESCRIPTION or argument
-  # Globals:
-  #   SHTS_ARRAY
-  #   BATS_TEST_DESCRIPTION
-  #######################################
-  shts::basename() {
-    basename "${BATS_TEST_FILENAME-}" .bats | sed 's/.shts$//';
-    }
-
-  #######################################
-  # Changes to top repository path \$SHTS_TOP and top path found, otherwise changes to the \$SHTS_TESTS
-  # Globals:
-  #   BATS_ROOT
-  #   SHTS_TESTS
-  #   SHTS_TOP
-  #######################################
-  shts::cd() { [ ! "${BATS_ROOT-}" ] || cd "${SHTS_TOP:-${SHTS_TESTS}}" || return; }
-
-  #######################################
-  # create a temporary directory in $BATS_FILE_TMPDIR if arg is provided
-  # Globals:
-  #   BATS_FILE_TMPDIR
-  # Arguments:
-  #  1  directory name (default: returns $BATS_FILE_TMPDIR)
-  # Outputs:
-  #  new temporary directory or $BATS_FILE_TMPDIR
-  #######################################
-  shts::tmp() {
-    local tmp="${BATS_FILE_TMPDIR}${1:+/${1}}"
-    [ ! "${1-}" ] || mkdir -p "${tmp}"
-    echo "${tmp}"
+#######################################
+# creates $SHTS_ARRAY array from $BATS_TEST_DESCRIPTION or argument
+# Globals:
+#   SHTS_ARRAY
+#   BATS_TEST_DESCRIPTION
+#######################################
+shts::basename() {
+  basename "${BATS_TEST_FILENAME-}" .bats | sed 's/.shts$//';
   }
 
-  #######################################
-  # run description array
-  # Globals:
-  #   SHTS_ARRAY
-  # Arguments:
-  #  None
-  # Caution:
-  #  Do not se it with single quotes ('echo "1 2" 3 4'), use double quotes ("echo '1 2' 3 4")
-  #######################################
-  shts::run() {
-    shts::array
-    run "${SHTS_ARRAY[@]}"
-  }
+#######################################
+# Changes to top repository path \$SHTS_TOP and top path found, otherwise changes to the \$SHTS_TESTS
+# Globals:
+#   BATS_ROOT
+#   SHTS_TESTS
+#   SHTS_TOP
+#######################################
+shts::cd() { [ ! "${BATS_ROOT-}" ] || cd "${SHTS_TOP:-${SHTS_TESTS}}" || return; }
+
+#######################################
+# create a temporary directory in $BATS_FILE_TMPDIR if arg is provided
+# Globals:
+#   BATS_FILE_TMPDIR
+# Arguments:
+#  1  directory name (default: returns $BATS_FILE_TMPDIR)
+# Outputs:
+#  new temporary directory or $BATS_FILE_TMPDIR
+#######################################
+shts::tmp() {
+  local tmp="${BATS_FILE_TMPDIR}${1:+/$1}"
+  [ ! "${1-}" ] || mkdir -p "${tmp}"
+  echo "${tmp}"
+}
+
+#######################################
+# run description array
+# Globals:
+#   SHTS_ARRAY
+# Arguments:
+#  None
+# Caution:
+#  Do not se it with single quotes ('echo "1 2" 3 4'), use double quotes ("echo '1 2' 3 4")
+#######################################
+shts::run() {
+  shts::array
+  run "${SHTS_ARRAY[@]}"
+}
 
   for i in bats-assert bats-file bats-support; do
     if ! . "${__brew_lib}/${i}/load.bash"; then

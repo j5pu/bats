@@ -1,10 +1,7 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="true.shts" type="bashpro.bats-core" singleton="false">
-    <option name="interpreterPath" value="$PROJECT_DIR$/bin/shts" />
+  <configuration default="false" name="test.bats" type="bashpro.bats-core" singleton="false">
     <option name="failingTestOutput" value="true" />
-    <option name="passingTestOutput" value="true" />
-    <option name="testDataPath" value="$PROJECT_DIR$/tests/fixtures/shebang/true.shts" />
-    <option name="testOutputDir" value="/tmp" />
+    <option name="testDataPath" value="$PROJECT_DIR$/tests/fixtures/shts/test.bats" />
     <EXTENSION ID="net.ashald.envfile">
       <option name="IS_ENABLED" value="true" />
       <option name="IS_SUBST" value="true" />

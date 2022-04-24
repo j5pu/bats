@@ -6,8 +6,10 @@ setup_file() {
 }
 
 teardown_file() {
-  if [ "${SHTS_TEST_BASENAME}" = "${SHTS_TEST_BASENAME/.sh/}" ] && test -d "${SHTS_OUTPUT}"; then
-    rm -rf "${SHTS_OUTPUT}"
+  if [ "${SHTS_TEST_BASENAME}" = "${SHTS_TEST_BASENAME/.sh/}" ]; then
+    for i in SHTS_GATHER SHTS_OUTPUT; do
+      ! test -d "${!i}" || rm -rf "${!i}"
+    done
   fi
 }
 
@@ -122,19 +124,13 @@ EOF
   assert_line --partial "--print-output-on-failure --gather-test-outputs-in ${SHTS_TOP}/.output \
 --no-tempdir-cleanup --output ${SHTS_TOP}/.output --show-output-of-passing-tests --timing --trace --verbose-run"
 }
-#
-#@test "${SHTS_TEST_BASENAME} --verbose tests/fixtures " {
-#  [ "${SHTS_TEST_BASENAME}" = "${SHTS_TEST_BASENAME/.sh/}" ] || skip "output is removed in teardown_file"
-#  shts::run
-#  assert_success
-#  assert_line "# \$\$ run \"\${SHTS_ARRAY[@]}\""
-#}
 
 @test "${SHTS_TEST_BASENAME} tests/fixtures --verbose " {
   [ "${SHTS_TEST_BASENAME}" = "${SHTS_TEST_BASENAME/.sh/}" ] || skip "output is removed in teardown_file"
   shts::run
   assert_success
   assert_line "# \$\$ run \"\${SHTS_ARRAY[@]}\""
+  [ ! "${SHTS_OUTPUT-}" ] || assert_dir_exist "${SHTS_OUTPUT}"
 }
 
 @test "${SHTS_TEST_BASENAME} tests/fixtures/tests/test.bats " {
@@ -147,11 +143,11 @@ EOF
   assert_success
 }
 
-@test "${SHTS_TEST_BASENAME} /tmp " {
+@test "${SHTS_TEST_BASENAME} $(shts::tmp tmp) " {
   shts::run
   assert_failure
   assert_line "${HELP}"
-  assert_line "${SHTS_TEST_BASENAME/.sh/}: /tmp: invalid argument/test path"
+  assert_line --regexp "${SHTS_TEST_BASENAME/.sh/}: .*/tmp: invalid argument/test path"
 }
 
 @test "git init " {
@@ -195,10 +191,10 @@ EOF
   assert_output "1..0"
 }
 
-@test "sh -c 'cd /tmp && ${SHTS_TEST_BASENAME}' " {
+@test "sh -c 'cd $(shts::tmp tmp1) && ${SHTS_TEST_BASENAME}' " {
   shts::run
   assert_failure
-  assert_output "${SHTS_TEST_BASENAME/.sh/}: /tmp: not a git repository (or any of the parent directories)"
+  assert_output --regexp "${SHTS_TEST_BASENAME/.sh/}:.*/tmp1: not a git repository \(or any of the parent directories\)"
 }
 
 @test "${SHTS_TEST_BASENAME} foo " {
