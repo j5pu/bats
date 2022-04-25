@@ -74,7 +74,6 @@ unset i j dir dirs
 { { [ "${PS1-}" ] || echo $- | command grep -q i; } && test $__RC_D_SOURCED -eq 0; } || return 0
 __RC_D_SOURCED=1
 
-
 has _init_completion || ! test -f /usr/share/bash-completion/bash_completion \
   || . /usr/share/bash-completion/bash_completion
 

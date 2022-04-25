@@ -14,7 +14,7 @@ if [ "${BASH_SOURCE-}" ] && [ "${BASH_SOURCE[0]##*/}" = "${0##*/}" ]; then
 usage: . ${0##*/}
    or: ${0##*/} -h|-help|help
 
-sources .env file skipping first line if value is \$PROJECT_DIR\$, setting PROJECT_DIR or variable name
+sources completions and .env file skipping first line if value is \$PROJECT_DIR\$, setting PROJECT_DIR or variable name
 
 uses .env file in current work dir or git top repository path
 
@@ -31,7 +31,7 @@ fi
 
 _env="$(pwd)/.env"
 [ -f "${_env}" ] || _env="$(git rev-parse --show-toplevel)/.env"
-[ -f "${_env}" ] || { >&2 echo "${0##*/}: $(pwd): no .env file found"; unset _env; return 1; }
+[ -f "${_env}" ] || { >&2 echo "${BASH_SOURCE[0]##*/}: $(pwd): no .env file found"; unset _env; return 1; }
 
 
 PROJECT_DIR="$(dirname "${_env}")"; export PROJECT_DIR
@@ -44,5 +44,12 @@ if head -1 "${_env}" | grep -q "=\$PROJECT_DIR\$$"; then
 fi
 unset _variable
 
-eval "$(awk -v l=$_line 'FNR > l { gsub("export ", ""); gsub("^", "export "); print }' "${_env}")"
+eval "$(awk -v l=$_line 'FNR > l { gsub("export ", ""); gsub("^", "export "); print }' "${_env}")" || return
+
+if command -v complete >/dev/null; then
+  while read -r _line; do
+    source "${_line}" || return
+  done < <(find "${PROJECT_DIR}" -path "*/*completion*/*")
+fi
+
 unset _env _line

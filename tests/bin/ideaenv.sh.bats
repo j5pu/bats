@@ -1,8 +1,10 @@
 #!/usr/bin/env bats
+# shellcheck disable=SC2034
 
 setup_file() {
   load ../helpers/helper
-  export HELP="sources .env file skipping first line if value is \$PROJECT_DIR\$, setting PROJECT_DIR or variable name"
+  export HELP="sources completions and .env file skipping first line if value is \$PROJECT_DIR\$, setting PROJECT_DIR \
+or variable name"
 }
 
 @test "${SHTS_TEST_BASENAME} " {
@@ -33,8 +35,54 @@ setup_file() {
   "${SHTS_ARRAY[@]}"
   . "${SHTS_TEST_BASENAME}"
   assert [ "${FOO}" = "${PROJECT_DIR}" ]
+
   run declare -p FOO
   assert_success
   assert_output "declare -x FOO=\"${PROJECT_DIR}\""
+
+  run declare -p EXPORT
+  assert_success
+  assert_output "declare -x EXPORT=\"${BATS_NUMBER_OF_PARALLEL_JOBS}\""
+
+  run declare -p BIN
+  assert_success
+  assert_output "declare -x BIN=\"${PROJECT_DIR}/bin:${USER}\""
 }
-$BATS_FILE_EXTENSION
+
+@test "cd ${BATS_TEST_DIRNAME}/../fixtures " {
+  top="${PROJECT_DIR}"
+  jobs="${BATS_NUMBER_OF_PARALLEL_JOBS}"
+
+  unset PROJECT_DIR BATS_NUMBER_OF_PARALLEL_JOBS
+  completed -p "${SHTS_TEST_BASENAME}" || complete -r "${SHTS_TEST_BASENAME}"
+
+  shts::array
+  "${SHTS_ARRAY[@]}"
+  . "${SHTS_TEST_BASENAME}"
+  assert_success
+
+  assert [ "${top}" = "${PROJECT_DIR}" ]
+
+  run declare -p PROJECT_DIR
+  assert_success
+  assert_output "declare -x PROJECT_DIR=\"${top}\""
+
+  run declare -p BATS_NUMBER_OF_PARALLEL_JOBS
+  assert_success
+  assert_output "declare -x BATS_NUMBER_OF_PARALLEL_JOBS=\"${jobs}\""
+
+  run complete -p  "${SHTS_TEST_BASENAME}"
+  assert_success
+}
+
+@test "$(shts::tmp env) " {
+  shts::array
+  cd "${SHTS_ARRAY[@]}"
+
+  run sh -c ". ${SHTS_TEST_BASENAME}"
+  assert_failure
+  assert_output - <<EOF
+fatal: not a git repository (or any of the parent directories): .git
+${SHTS_TEST_BASENAME}: $(pwd): no .env file found
+EOF
+}

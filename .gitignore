@@ -1,4 +1,6 @@
 .output
+.shts
+*.log
 
 ### macOS template
 .DS_Store

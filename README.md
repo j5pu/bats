@@ -7,7 +7,7 @@
 
 [![tap](https://github.com/j5pu/homebrew-tap/workflows/main/badge.svg)](https://github.com/j5pu/homebrew-tap/actions)
 
-[Bats Helpers](./bin/bats.bash)
+[Bats Helpers](./bin/shts.sh)
 
 
 ## Install
@@ -32,16 +32,29 @@ BATS_NUMBER_OF_PARALLEL_JOBS=600
 PATH="${PROJECT_DIR}/bin:${PATH}"
 ```
 
-## [.envrc](.envrc)
+## [.envrc](.env)
 
+### Alt 1: not needed
+It is not needed if added to terminal:
+
+![ideaenv.sh added to terminal](./.idea/assets/ideaenv.sh.png)
+
+### Alt 2: [.envrc with . ideaenv.sh](.env)
+```shell
+. ideaenv.sh
+export FOO=2
+```
+
+### Alt 3: [.envrc filtering more JetBrains variables](.env)
 ````shell
 PROJECT_DIR="$( cd "$(dirname "${BASH_SOURCE:-$0}")"; pwd -P )"; export PROJECT_DIR
-eval "$(awk 'FNR > 1 { print "export " $0 }' "${PROJECT_DIR}/.env" | grep -v "^$" | sed 's/^/export /g')"
+eval "$(awk 'FNR > 3 { print "export " $0 }' "${PROJECT_DIR}/.env" | grep -v "^$" | sed 's/^/export /g')"
 
 ````
 ### Usage
 
-#### [shebang](./tests/fixtures/env/true.shts)
+`bats` is symlinked to `shts`. `bats` or `shts` can be used as interpreter on the shebang line.
+#### [shebang](./tests/fixtures/shebang/true.shts)
 
 ````shell
 #!/usr/bin/env shts

@@ -94,7 +94,7 @@ export SHTS_ARRAY=()
 # </html>
 export SHTS_BASENAME="${SHTS_TOP##*/}"
 
-# Array with Command Executed (variable set by: shts).
+# Command Executed (variable set by: shts).
 #
 export SHTS_COMMAND
 
