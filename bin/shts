@@ -4,9 +4,6 @@ set -eu
 shopt -s inherit_errexit
 
 name=shts
-
-. "${0/bats/${name}}.sh"
-
 bats="$(brew --prefix bats-core)/bin/bats"
 
 # Command Executed (variable set by: shts).
@@ -27,7 +24,7 @@ export SHTS_TEST_DIR
 
 # Array of tests found (variable set by: shts).
 #
-declare -a SHTS_TESTS
+export SHTS_TESTS
 
 #######################################
 # show error and exit 1
@@ -136,7 +133,6 @@ main() {
   local no_parallelize_across_files=()
   local no_parallelize_within_files=()
   local no_tempdir_cleanup=false
-  local jobs=(--jobs "${BATS_NUMBER_OF_PARALLEL_JOBS:-400}")
   local options=()
   local one=false
   local output=false
@@ -188,8 +184,11 @@ main() {
     shift
   done
 
-  [ ! "${no_parallelize_across_files-}" ] || [ "${jobs-}" ] || jobs=(--jobs 2)
-  [ ! "${no_parallelize_within_files-}" ] || [ "${jobs-}" ] || jobs=(--jobs 2)
+  . "${0/bats/${name}}.sh"
+
+  local jobs=(--jobs "${BATS_NUMBER_OF_PARALLEL_JOBS:-400}")
+  [ ! "${no_parallelize_across_files-}" ] || [ "${jobs[1]}" -ne 1 ] || jobs=(--jobs 2)
+  [ ! "${no_parallelize_within_files-}" ] || [ "${jobs[1]}" -ne 1 ] || jobs=(--jobs 2)
 
   ! $one || { jobs=(--jobs 1); no_parallelize_across_files=(); no_parallelize_within_files=(); }
 

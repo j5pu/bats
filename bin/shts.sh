@@ -119,7 +119,6 @@ export SHTS_TEST_DIR
 #
 export SHTS_TESTS
 
-
   ! func_exported 2>/dev/null || return 0
 
 #######################################
