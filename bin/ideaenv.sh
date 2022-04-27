@@ -49,7 +49,7 @@ eval "$(awk -v l=$_line 'FNR > l { gsub("export ", ""); gsub("^", "export "); pr
 if command -v complete >/dev/null; then
   while read -r _line; do
     source "${_line}" || return
-  done < <(find "${PROJECT_DIR}" -path "*/*completion*/*")
+  done < <(find "${PROJECT_DIR}" -not -type d -regex ".*/bash_completion.d/[^/]*")
 fi
 
 unset _env _line
