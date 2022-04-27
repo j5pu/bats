@@ -54,11 +54,11 @@ or variable name"
   jobs="${BATS_NUMBER_OF_PARALLEL_JOBS}"
 
   unset PROJECT_DIR BATS_NUMBER_OF_PARALLEL_JOBS
-  completed -p "${SHTS_TEST_BASENAME}" || complete -r "${SHTS_TEST_BASENAME}"
+  ! complete -p "${SHTS_TEST_BASENAME}" &>/dev/null || complete -r "${SHTS_TEST_BASENAME}"
 
   shts::array
   "${SHTS_ARRAY[@]}"
-  . "${SHTS_TEST_BASENAME}"
+  PS1="\$ " . "${SHTS_TEST_BASENAME}"
   assert_success
 
   assert [ "${top}" = "${PROJECT_DIR}" ]
@@ -80,15 +80,21 @@ or variable name"
   cd "${SHTS_ARRAY[@]}"
 
   . "${SHTS_TEST_BASENAME}"
-  assert_sucess
-  # TODO: acabar el test del PATH. Mirar el test anterior que si quito en .en fallaría
-  # FIXME: aquí lo dejo sale error y me duermo
-  # TODO: agregar al post install de shts.rb que se ejecute el brew compgen.
-  # TODO: acabar con lo que estaba del symlink de JetBrains
-  # TODO: ver que hago con los alias de directorios de homebrew-tap, etc. y variables.
-  # TODO: ver que coño hago con el comando que instale todo y las formulas. y ver si pongo el IDEA...
+  assert_success
 
   IDEAENV_QUIET=0 run sh -c ". ${SHTS_TEST_BASENAME}"
   assert_failure
   assert_output "${SHTS_TEST_BASENAME}: $(pwd): no .env file or git repository found"
+
+  git init
+  mkdir bin
+  run sh -c ". ${SHTS_TEST_BASENAME}"
+  assert_success
+  run echo "${PATH}"
+  assert_output --regexp "${PROJECT_DIR}/bin:"
 }
+
+# TODO: agregar al post install de shts.rb que se ejecute el brew compgen.
+# TODO: acabar con lo que estaba del symlink de JetBrains
+# TODO: ver que hago con los alias de directorios de homebrew-tap, etc. y variables.
+# TODO: ver que coño hago con el comando que instale todo y las formulas. y ver si pongo el IDEA...

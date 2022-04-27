@@ -9,7 +9,7 @@
 
 # Do not show messages when no .env file or git top path is found and return 0
 #
-: "${IDEAENV_QUIET=1}"; export IDEAENV_QUIET
+: "${IDEAENV_QUIET=1}"
 
 # Project Directory from git top or env file
 #
@@ -63,18 +63,18 @@ if [ -f "${_env}" ]; then
   unset _variable
   eval "$(awk -v l=$_line 'FNR > l { gsub("export ", ""); gsub("^", "export "); print }' "${_env}")" || return
   unset _env
-elif test -d "${PROJECT_DIR-}"; then
+elif test -d "${PROJECT_DIR}"; then
   ! test -d "${PROJECT_DIR}/bin" || [[ "${PATH}" =~ ${PROJECT_DIR}/bin: ]] || export PATH="${PROJECT_DIR}/bin:${PATH}"
-elif test $IDEAENV_QUIET -ne 1; then
+elif test $IDEAENV_QUIET -eq 1; then
+  unset _env; return
+else
   >&2 echo "${BASH_SOURCE[0]##*/}: $(pwd): no .env file or git repository found"
-  unset _env
-  return 1
+  unset _env; return 1
 fi
 
-if test -d "${PROJECT_DIR-}" && [ "${PS1-}" ] && command -v complete >/dev/null; then
-  while read -r _line; do
+if test -d "${PROJECT_DIR}/etc/bash_completion.d" && [ "${PS1-}" ] && command -v complete >/dev/null; then
+  for _line in "${PROJECT_DIR}/etc/bash_completion.d"/*; do
     source "${_line}" || return
-  done < <(find "${PROJECT_DIR}" -not -type d -regex ".*/bash_completion.d/[^/]*")
+  done
   unset _line
 fi
-
