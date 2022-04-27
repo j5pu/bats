@@ -72,9 +72,10 @@ else
   unset _env; return 1
 fi
 
-if test -d "${PROJECT_DIR}/etc/bash_completion.d" && [ "${PS1-}" ] && command -v complete >/dev/null; then
-  for _line in "${PROJECT_DIR}/etc/bash_completion.d"/*; do
-    source "${_line}" || return
-  done
-  unset _line
+if [ "${PS1-}" ] && command -v complete >/dev/null; then
+  for _file in "${PROJECT_DIR}/etc/bash_completion.d"/*; do
+    test -f "${_file}" || break
+    source "${_file}" || return
+  done <>/dev/null
+  unset _file
 fi

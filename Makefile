@@ -1,8 +1,11 @@
 .PHONY: bats publish test tests version
 
 SHELL := $(shell bash -c 'command -v bash')
-msg := feat: first
+msg := auto
 export msg
+
+add:
+	@git add -A
 
 bats:
 	@! brew list bats &>/dev/null || brew uninstall bats
@@ -11,6 +14,11 @@ bats:
 publish: tests
 	@git add .
 	@git commit --quiet -a -m "$${msg:-auto}" || true
+	@git push --quiet
+
+patch: tests add
+	@git commit --quiet -a -m "fix: $(msg)" || true
+	@
 	@git push --quiet
 
 tests: bats
