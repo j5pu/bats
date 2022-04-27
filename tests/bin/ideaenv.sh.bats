@@ -93,8 +93,3 @@ or variable name"
   run echo "${PATH}"
   assert_output --regexp "${PROJECT_DIR}/bin:"
 }
-
-# TODO: agregar al post install de shts.rb que se ejecute el brew compgen.
-# TODO: acabar con lo que estaba del symlink de JetBrains
-# TODO: ver que hago con los alias de directorios de homebrew-tap, etc. y variables.
-# TODO: ver que coño hago con el comando que instale todo y las formulas. y ver si pongo el IDEA...

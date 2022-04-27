@@ -1,7 +1,7 @@
 .PHONY: bats publish test tests version
 
 SHELL := $(shell bash -c 'command -v bash')
-msg := fix: completions
+msg := feat: first
 export msg
 
 bats:
