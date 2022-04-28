@@ -170,6 +170,8 @@ shts::remote() {
   git remote add origin "${SHTS_REMOTE[1]}"
   git config branch.main.remote origin
   git config branch.main.merge refs/heads/main
+  git config user.name "${SHTS_BASENAME}"
+  git config user.email "${SHTS_BASENAME}@example.com"
 }
 
 #######################################

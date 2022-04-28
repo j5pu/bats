@@ -1,0 +1,134 @@
+#!/usr/bin/env bash
+
+#
+# quick release script base on name of the script [sync, patch, minor, major]
+
+set -eu
+
+cd "$(git rev-parse --show-toplevel)"
+
+die() { >&2 printf '%b\n' "\033[1;31m✘\033[0m ${script}: $*"; exit 1; }
+
+
+sync() {
+  ! is_diverged || die "Diverged from upstream"
+  is_clean || ! is_behind || die "Uncommitted changes and behind upstream (stage and push or commit and force)"
+  commit "$@"
+  ! is_ahead || push
+  ! is_behind || pull
+}
+
+#######################################
+# commit if not clean
+# Arguments:
+#  None
+#######################################
+commit() { is_clean || { git add -A; git commit --quiet -m "$(msg "$@")"; }; }
+#######################################
+# fetch repository
+# Arguments:
+#  None
+#######################################
+fetch() { git remote update >/dev/null; }
+#######################################
+# best commit hash for merge
+# Arguments:
+#  None
+#######################################
+hash_base() { fetch && git merge-base @ "@{u}"; }
+#######################################
+# description
+# Arguments:
+#  None
+#######################################
+hash_local() { fetch && git rev-parse @; }
+hash_remote() { fetch && git rev-parse "@{u}"; }
+is_ahead() { [ "$(hash_remote)" = "$(hash_base)" ]; }  # need to push
+is_behind() { [ "$(hash_local)" = "$(hash_base)" ]; }  # need to pull
+is_bump() { is_publish && [ "${current}" != "${next}" ]; }
+is_clean() { test -z "$(git status -uno --porcelain)"; }
+is_diverged() { is_ahead && is_behind ; }  # need to pull
+is_publish() { [ "${script}" != "push" ]; }
+is_python() { [ -f setup.cfg ]; }
+is_tagged() { git describe --exact-match --tags @ >/dev/null 2>&1; }  # last commit has a tag
+is_uptodate() { [ "$(hash_local)" = "$(hash_remote)" ]; }
+owner_name() { gh repo view --json nameWithOwner --jq .nameWithOwner;}
+pull() { git pull --quiet --tags; }
+push() { git push --quiet "$@"; }
+tag_ahead() { ! tag_sync && [ "$(tag_strip "$(tag_local)")" = "$(tag_latest)" ]; }
+tag_behind() { ! tag_sync && [ "$(tag_strip "$(tag_remote)")" = "$(tag_latest "$@")" ]; }
+tag_latest() { printf "%s\n" "$(tag_strip "$(tag_local)")" "$(tag_strip "$(tag_remote)")" | sort -V | tail -1; }
+#######################################
+# latest local tag, default to v0.0.0
+# Arguments:
+#  None
+#######################################
+tag_local() { git describe --tags --abbrev=0 --match "*.*.*" @ 2>/dev/null || echo "v0.0.0"; }
+#######################################
+# local tag prefix
+# Arguments:
+#   1
+#######################################
+tag_prefix() { [ "${1::1}" != "v" ] || echo v; }
+#######################################
+# latest remote tag, default to v0.0.0
+# Arguments:
+#  None
+#######################################
+tag_remote() { gh api "repos/$(owner_name)/tags" --jq .[0].name 2>/dev/null || echo "v0.0.0"; }
+tag_strip() { echo "${1#v}"; }
+tag_sync() { [ "$(tag_strip "$(tag_local)")" = "$(tag_strip "$(tag_remote)")" ]; }
+
+#######################################
+# Increments the part of the string
+# Arguments:
+#   1  version itself
+#   2  number of part: 0 – major, 1 – minor, 2 – patch
+#######################################
+version_increment() {
+  local parts prefix="v"
+  [ "${1::1}" = "${prefix}" ] || prefix=""
+  mapfile -t parts < <(strip_prefix "$1" | tr '.' '\n')
+  ((parts[$2]++))
+  case "$2" in
+    0) parts[1]=0 ;&
+    1) parts[2]=0 ;;
+  esac
+  echo "$(version_prefix "$1")${parts[0]}.${parts[1]}.${parts[2]}"
+}
+
+msg() {
+  suffix="${next}"
+  case "${script}" in
+    patch) msg=fix ;;
+    minor) msg=feat ;;
+    major) msg="feat!" ;;
+    *) msg=auto; suffix="$(git diff --name-status -r | awk '{print $2}' | tr '\n' ' ')" ;;
+  esac
+  echo "${msg}: ${1:-${suffix}}"
+}
+
+venv() {
+  is_python || return 0
+  test -f ./venv/bin/activate || python3 -m venv venv
+  grep -q '.pyenv' ./venv/bin/activate || echo 'eval $$\(pyenv init --path)' >> ./venv/bin/activate
+  . ./venv/bin/activate
+}
+
+main() {
+  current="$(svu current)"
+  script="${0##*/}"
+  next="$(svu next)"
+  sync "$@"
+}
+
+main "$@"
+
+make tests
+
+
+current="$(svu)"
+next="$(svu next)"
+[ "${current}" != "${next}" ] || exit 0
+
+main "$@"
