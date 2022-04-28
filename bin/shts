@@ -52,7 +52,7 @@ bats testing wrapper and helper functions when "${name}.sh" sourced
 test files (ending with ".bats" or ".${name}"). If no <tests> run for: first directory found with ".bats"
 files in working directory, or either 'tests', 'test' or '__tests__' under top repository path.
 
-Changes to top repository path \$SHTS_TOP when running testa and top path found, otherwise changes
+Changes to top repository path \$SHTS_TOP when running tests and top path found, otherwise changes
 to the \$SHTS_TEST_DIR
 
 Commands:
@@ -129,6 +129,7 @@ main() {
   local dry=false
   local gather_test_outputs_in=false
   local gather_dir=("${outputs}/test")
+  local jobs=()
   local list=false
   local no_parallelize_across_files=()
   local no_parallelize_within_files=()
@@ -186,7 +187,7 @@ main() {
 
   . "${0/bats/${name}}.sh"
 
-  local jobs=(--jobs "${BATS_NUMBER_OF_PARALLEL_JOBS:-400}")
+  [ "${jobs-}" ] || jobs=(--jobs "${BATS_NUMBER_OF_PARALLEL_JOBS:-400}")
   [ ! "${no_parallelize_across_files-}" ] || [ "${jobs[1]}" -ne 1 ] || jobs=(--jobs 2)
   [ ! "${no_parallelize_within_files-}" ] || [ "${jobs[1]}" -ne 1 ] || jobs=(--jobs 2)
 
