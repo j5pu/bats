@@ -15,5 +15,3 @@ publish: tests
 
 tests: bats
 	@bin/shts
-
-

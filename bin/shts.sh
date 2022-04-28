@@ -85,7 +85,7 @@ if [ "${BASH_SOURCE##*/}" = "${0##*/}" ]; then
   ${0%.*} "$@"
 elif [ "${BATS_ROOT-}" ] || [ "${0##*/}.sh" = "${BASH_SOURCE[0]##*/}" ]; then
 # <html><h2>Bats Description Array</h2>
-# <p><strong><code>$SHTS_ARRAY</code></strong> created by bats::description() with $BATS_TEST_DESCRIPTION.</p>
+# <p><strong><code>$SHTS_ARRAY</code></strong> created by shts::array() with $BATS_TEST_DESCRIPTION.</p>
 # </html>
 export SHTS_ARRAY=()
 
@@ -105,6 +105,11 @@ export SHTS_GATHER
 # Directory to write report files [-o|--output] (variable set by: shts).
 #
 export SHTS_OUTPUT
+
+# <html><h2>Bats Remote and Local Repository Array</h2>
+# <p><strong><code>$SHTS_REMOTE</code></strong> created by shts::remote(), [0] repo, [1] remote.</p>
+# </html>
+export SHTS_REMOTE=()
 
 # <html><h2>Test File Basename Without Suffix .bats</h2>
 # <p><strong><code>$SHTS_TEST_BASENAME</code></strong> from $BATS_TEST_FILENAME.</p>
@@ -150,18 +155,21 @@ shts::basename() {
 shts::cd() { [ ! "${BATS_ROOT-}" ] || cd "${SHTS_TOP:-${SHTS_TESTS}}" || return; }
 
 #######################################
-# create a temporary directory in $BATS_FILE_TMPDIR if arg is provided
+# create a remote, a local temporary directory and change to local repository directory (no commits added)
 # Globals:
-#   BATS_FILE_TMPDIR
+#   SHTS_REMOTE
 # Arguments:
-#  1  directory name (default: returns $BATS_FILE_TMPDIR)
-# Outputs:
-#  new temporary directory or $BATS_FILE_TMPDIR
+#  1  directory name (default: random name)
 #######################################
-shts::tmp() {
-  local tmp="${BATS_FILE_TMPDIR}${1:+/$1}"
-  [ ! "${1-}" ] || mkdir -p "${tmp}"
-  echo "${tmp}"
+shts::remote() {
+  SHTS_REMOTE=("$(shts::tmp "${1:-$RANDOM}")" "$(shts::tmp "${1:-$RANDOM}.git")")
+  git -C "${SHTS_REMOTE[1]}" init --bare --quiet
+  cd "${SHTS_REMOTE[0]}" || return
+  git init --quiet
+  git branch -M main
+  git remote add origin "${SHTS_REMOTE[1]}"
+  git config branch.main.remote origin
+  git config branch.main.merge refs/heads/main
 }
 
 #######################################
@@ -176,6 +184,21 @@ shts::tmp() {
 shts::run() {
   shts::array
   run "${SHTS_ARRAY[@]}"
+}
+
+#######################################
+# create a temporary directory in $BATS_FILE_TMPDIR if arg is provided
+# Globals:
+#   BATS_FILE_TMPDIR
+# Arguments:
+#  1  directory name (default: returns $BATS_FILE_TMPDIR)
+# Outputs:
+#  new temporary directory or $BATS_FILE_TMPDIR
+#######################################
+shts::tmp() {
+  local tmp="${BATS_FILE_TMPDIR}${1:+/$1}"
+  [ ! "${1-}" ] || mkdir -p "${tmp}"
+  echo "${tmp}"
 }
 
   for i in bats-assert bats-file bats-support; do
