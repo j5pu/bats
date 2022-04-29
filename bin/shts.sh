@@ -6,15 +6,6 @@
 
 : "${BASH_SOURCE?}"
 
-# <html><h2>Saved $PATH on First Suite Test Start</h2>
-# <p><strong><code>$SHTS_PATH</code></strong></p>
-# </html>
-export SHTS_PATH="${PATH}"
-
-# <html><h2>Git Top Path</h2>
-# <p><strong><code>$SHTS_TOP</code></strong> contains the git top directory using $PWD.</p>
-# </html>
-export SHTS_TOP="$(git rev-parse --show-toplevel 2>/dev/null || true)"
 
 __brew_lib="$(brew --prefix)/lib"
 
@@ -29,6 +20,63 @@ __shts_functions() {
   file_functions "${BASH_SOURCE[0]}"
   awk -F '(' "/^  $(basename "${BASH_SOURCE[0]}" .sh)::.*\(\)/ { gsub(/ /,\"\",\$1); print \$1 }" "${BASH_SOURCE[0]}"
 }
+
+if [ "${BASH_SOURCE##*/}" = "${0##*/}" ]; then
+  set -eu
+  [ "${1-}" != "functions" ] || { __shts_functions | sort; exit; }
+  ${0%.*} "$@"
+  exit
+fi
+
+# <html><h2>Bats Description Array</h2>
+# <p><strong><code>$SHTS_ARRAY</code></strong> created by shts::array() with $BATS_TEST_DESCRIPTION.</p>
+# </html>
+export SHTS_ARRAY=()
+
+# Command Executed (variable set by: shts).
+#
+export SHTS_COMMAND
+
+# Gather the output of failing *and* passing tests as files in directory [--gather-test-outputs-in] (variable set by: shts).
+#
+export SHTS_GATHER
+
+# Directory to write report files [-o|--output] (variable set by: shts).
+#
+export SHTS_OUTPUT
+
+# <html><h2>Saved $PATH on First Suite Test Start</h2>
+# <p><strong><code>$SHTS_PATH</code></strong></p>
+# </html>
+export SHTS_PATH="${PATH}"
+
+# <html><h2>Bats Remote and Local Repository Array</h2>
+# <p><strong><code>$SHTS_REMOTE</code></strong> created by shts::remote(), [0] repo, [1] remote.</p>
+# </html>
+export SHTS_REMOTE=()
+
+# <html><h2>Test File Basename Without Suffix .bats</h2>
+# <p><strong><code>$SHTS_TEST_BASENAME</code></strong> from $BATS_TEST_FILENAME.</p>
+# </html>
+export SHTS_TEST_BASENAME="$(basename "${BATS_TEST_FILENAME-}" .bats | sed 's/.shts$//')"
+
+# Path to the test directory, passed as argument or found by 'shts' (variable set by: shts).
+#
+export SHTS_TEST_DIR
+
+# Array of tests found (variable set by: shts).
+#
+export SHTS_TESTS
+
+# <html><h2>Git Top Path</h2>
+# <p><strong><code>$SHTS_TOP</code></strong> contains the git top directory using $PWD.</p>
+# </html>
+export SHTS_TOP="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+
+# <html><h2>Git Top Basename</h2>
+# <p><strong><code>$SHTS_TOP_NAME</code></strong> basename of git top directory when sourced from a git dir.</p>
+# </html>
+export SHTS_BASENAME="${SHTS_TOP##*/}"
 
 #######################################
 # Restores $PATH to $SHTS_PATH and sources .envrc.
@@ -79,52 +127,7 @@ func_exported() {
   fi
 }
 
-if [ "${BASH_SOURCE##*/}" = "${0##*/}" ]; then
-  set -eu
-  [ "${1-}" != "functions" ] || { __shts_functions | sort; exit; }
-  ${0%.*} "$@"
-elif [ "${BATS_ROOT-}" ] || [ "${0##*/}.sh" = "${BASH_SOURCE[0]##*/}" ]; then
-# <html><h2>Bats Description Array</h2>
-# <p><strong><code>$SHTS_ARRAY</code></strong> created by shts::array() with $BATS_TEST_DESCRIPTION.</p>
-# </html>
-export SHTS_ARRAY=()
-
-# <html><h2>Git Top Basename</h2>
-# <p><strong><code>$SHTS_TOP_NAME</code></strong> basename of git top directory when sourced from a git dir.</p>
-# </html>
-export SHTS_BASENAME="${SHTS_TOP##*/}"
-
-# Command Executed (variable set by: shts).
-#
-export SHTS_COMMAND
-
-# Gather the output of failing *and* passing tests as files in directory [--gather-test-outputs-in] (variable set by: shts).
-#
-export SHTS_GATHER
-
-# Directory to write report files [-o|--output] (variable set by: shts).
-#
-export SHTS_OUTPUT
-
-# <html><h2>Bats Remote and Local Repository Array</h2>
-# <p><strong><code>$SHTS_REMOTE</code></strong> created by shts::remote(), [0] repo, [1] remote.</p>
-# </html>
-export SHTS_REMOTE=()
-
-# <html><h2>Test File Basename Without Suffix .bats</h2>
-# <p><strong><code>$SHTS_TEST_BASENAME</code></strong> from $BATS_TEST_FILENAME.</p>
-# </html>
-export SHTS_TEST_BASENAME="$(basename "${BATS_TEST_FILENAME-}" .bats | sed 's/.shts$//')"
-
-# Path to the test directory, passed as argument or found by 'shts' (variable set by: shts).
-#
-export SHTS_TEST_DIR
-
-# Array of tests found (variable set by: shts).
-#
-export SHTS_TESTS
-
-  ! func_exported 2>/dev/null || return 0
+! func_exported 2>/dev/null || return 0
 
 #######################################
 # creates $SHTS_ARRAY array from $BATS_TEST_DESCRIPTION or argument
@@ -203,16 +206,16 @@ shts::tmp() {
   echo "${tmp}"
 }
 
-  for i in bats-assert bats-file bats-support; do
-    if ! . "${__brew_lib}/${i}/load.bash"; then
-      >&2 echo "${BASH_SOURCE[0]}: ${__brew_lib}/${i}/load.bash: sourcing error"
-      return 1
-    fi
-  done; unset i
+for i in bats-assert bats-file bats-support; do
+  if ! . "${__brew_lib}/${i}/load.bash"; then
+    >&2 echo "${BASH_SOURCE[0]}: ${__brew_lib}/${i}/load.bash: sourcing error"
+    return 1
+  fi
+done; unset i
 
-  shts::cd
-  envrc
+shts::cd
+envrc
 
-  export -f $(__shts_functions)
-  func_exported assert || return
-fi
+export -f $(__shts_functions)
+func_exported assert || return
+
