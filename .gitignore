@@ -1,6 +1,7 @@
 .output
 .shts
 *.log
+.idea/workspace.xml
 
 ### macOS template
 .DS_Store
