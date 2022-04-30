@@ -23,12 +23,6 @@ setup_file() {
 @test "func_exported assert_socket_not_exist " {
   shts::run
   assert_success
-
-  unset -f assert_socket_not_exist
-  setup_file
-
-  shts::run
-  assert_failure
 }
 
 @test "shts:tmp foo " {

@@ -187,7 +187,7 @@ main() {
 
   . "${0/bats/${name}}.sh"
 
-  [ "${jobs-}" ] || jobs=(--jobs "${BATS_NUMBER_OF_PARALLEL_JOBS:-400}")
+  [ "${jobs-}" ] || jobs=(--jobs "${BATS_NUMBER_OF_PARALLEL_JOBS:-1}")
   [ ! "${no_parallelize_across_files-}" ] || [ "${jobs[1]}" -ne 1 ] || jobs=(--jobs 2)
   [ ! "${no_parallelize_within_files-}" ] || [ "${jobs[1]}" -ne 1 ] || jobs=(--jobs 2)
 

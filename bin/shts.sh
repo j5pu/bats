@@ -6,7 +6,6 @@
 
 : "${BASH_SOURCE?}"
 
-
 __brew_lib="$(brew --prefix)/lib"
 
 #######################################
@@ -86,20 +85,10 @@ export SHTS_BASENAME="${SHTS_TOP##*/}"
 #  None
 #######################################
 envrc() {
-  if [ "${SHTS_TOP-}" ]; then
-    PATH="${SHTS_PATH}"
-    if test -f "${SHTS_TOP}/.envrc"; then
-      . "${SHTS_TOP}/.envrc" || return
-    elif test -f "${SHTS_TOP}/.env"; then
-      . "$(dirname "${BASH_SOURCE[0]}")/ideaenv.sh" || return
-    else
-      >&2 echo "${BASH_SOURCE[0]##*/}: ${SHTS_TOP}/{.env,.envrc}: No such file"
-      return 1
-    fi
-  else
-    >&2 echo "${BASH_SOURCE[0]##*/}: ${PWD}: not a git repository (or any of the parent directories)"
-    return 1
-  fi
+  shts::cd
+  PATH="${SHTS_PATH}"
+  . "$(dirname "${BASH_SOURCE[0]}")/envfile.sh"
+  envfile
 }
 
 #######################################
@@ -127,8 +116,6 @@ func_exported() {
   fi
 }
 
-! func_exported 2>/dev/null || return 0
-
 #######################################
 # creates $SHTS_ARRAY array from $BATS_TEST_DESCRIPTION or argument
 # Globals:
@@ -144,9 +131,7 @@ shts::array() { mapfile -t SHTS_ARRAY < <(xargs printf '%s\n' <<<${BATS_TEST_DES
 #   SHTS_ARRAY
 #   BATS_TEST_DESCRIPTION
 #######################################
-shts::basename() {
-  basename "${BATS_TEST_FILENAME-}" .bats | sed 's/.shts$//';
-  }
+shts::basename() { basename "${BATS_TEST_FILENAME-}" .bats | sed 's/.shts$//'; }
 
 #######################################
 # Changes to top repository path \$SHTS_TOP and top path found, otherwise changes to the \$SHTS_TESTS
@@ -155,7 +140,7 @@ shts::basename() {
 #   SHTS_TESTS
 #   SHTS_TOP
 #######################################
-shts::cd() { [ ! "${BATS_ROOT-}" ] || cd "${SHTS_TOP:-${SHTS_TESTS}}" || return; }
+shts::cd() { cd "${SHTS_TOP:-${SHTS_TESTS:-.}}" || return; }
 
 #######################################
 # create a remote, a local temporary directory and change to local repository directory (no commits added)
@@ -213,9 +198,8 @@ for i in bats-assert bats-file bats-support; do
   fi
 done; unset i
 
-shts::cd
 envrc
-
+set +x
 export -f $(__shts_functions)
-func_exported assert || return
 
+func_exported assert || return

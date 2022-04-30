@@ -34,6 +34,7 @@ or variable name"
   shts::array
   "${SHTS_ARRAY[@]}"
   . "${SHTS_TEST_BASENAME}"
+  "${SHTS_TEST_BASENAME/.sh}"
   assert [ "${FOO}" = "${PROJECT_DIR}" ]
 
   run declare -p FOO
@@ -58,7 +59,9 @@ or variable name"
 
   shts::array
   "${SHTS_ARRAY[@]}"
-  PS1="\$ " . "${SHTS_TEST_BASENAME}"
+  . "${SHTS_TEST_BASENAME}"
+  PS1="\$ " "${SHTS_TEST_BASENAME/.sh}"
+
   assert_success
 
   assert [ "${top}" = "${PROJECT_DIR}" ]
@@ -80,15 +83,12 @@ or variable name"
   cd "${SHTS_ARRAY[@]}"
 
   . "${SHTS_TEST_BASENAME}"
+  "${SHTS_TEST_BASENAME/.sh}"
   assert_success
-
-  IDEAENV_QUIET=0 run sh -c ". ${SHTS_TEST_BASENAME}"
-  assert_failure
-  assert_output "${SHTS_TEST_BASENAME}: $(pwd): no .env file or git repository found"
 
   git init
   mkdir bin
-  run sh -c ". ${SHTS_TEST_BASENAME}"
+  run sh -c ". ${SHTS_TEST_BASENAME}; ${SHTS_TEST_BASENAME/.sh}"
   assert_success
   run echo "${PATH}"
   assert_output --regexp "${PROJECT_DIR}/bin:"
