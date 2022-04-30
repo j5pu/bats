@@ -5,10 +5,6 @@
 
 [ "${BASH_SOURCE-}" ] || return
 
-# Bats Number of Parallel Jobs
-#
-: "${BATS_NUMBER_OF_PARALLEL_JOBS=400}"; export BATS_NUMBER_OF_PARALLEL_JOBS
-
 # Project Directory from git top or env file
 #
 export PROJECT_DIR
@@ -25,17 +21,23 @@ export PROJECT_DIR
 #   $rc
 #######################################
 envfile() {
-  local rc=$? envfile file line variable
+  local rc=$? envfile file line tmp variable
 
-  # TODO: aqui lo dejo tengo que arreglar lo de que se queda en bucle por el BATS_ROOT
   if [ ! "${__ENVFILE_SET-}" ]; then
     __ENVFILE_SET="$(set)"
 
     PROJECT_DIR="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+    envfile="$(
+      while true; do
+        [ ! -f ".envfile" ] || { echo "${PWD}/.envfile"; break; }
+        [ "${PWD}" != "${PROJECT_DIR}" ] || break
+        cd ..
+      done
+    )"
     envfile="$(find_up .envfile "${PROJECT_DIR}" 2>/dev/null || echo "${PROJECT_DIR}/.envfile")"
 
     if [ -f "${envfile}" ]; then
-      >&2 echo "envfile: loading $(echo "${envfile}" | sed "s|${HOME}|~|")"
+      [ ! "${PS1-}" ] || >&2 echo "envfile: loading $(echo "${envfile}" | sed "s|${HOME}|~|")"
 
       line=0
       if head -1 "${envfile}" | grep -q "=\$PROJECT_DIR\$$"; then
@@ -44,7 +46,7 @@ envfile() {
         line=1
       fi
       eval "$(awk -v l=$line 'FNR > l { gsub("export ", ""); gsub("^", "export "); print }' "${envfile}")" || return
-      . pathdedup.sh
+      PATH="$(echo "${PATH}" | tr ':' '\n' | uniq | tr '\n' ':' | sed 's/:$//')"
     fi
     ! test -d "${PROJECT_DIR}/bin" || [[ "${PATH}" =~ ${PROJECT_DIR}/bin: ]] || export PATH="${PROJECT_DIR}/bin:${PATH}"
   fi
@@ -55,10 +57,10 @@ envfile() {
     *"direnv allow"*)
       direnv allow
       envfile
-      >&2 echo "envfile: allowed"
+      [ ! "${PS1-}" ] || >&2 echo "envfile: allowed"
       ;;
     *"direnv: loading"*)
-      grep -E "^direnv: loading|^direnv: export" "${tmp}"
+      [ ! "${PS1-}" ] || grep -E "^direnv: loading|^direnv: export" "${tmp}"
       if [ "${PS1-}" ] && command -v complete >/dev/null; then
         for file in "${PROJECT_DIR}/etc/bash_completion.d"/*; do
           test -f "${file}" || break
@@ -67,7 +69,7 @@ envfile() {
       fi
       ;;
     *"direnv: unloading"*)
-      >&2 echo "envfile: unloading"
+      [ ! "${PS1-}" ] || >&2 echo "envfile: unloading"
       eval echo "${__ENVFILE_SET}" 2>&1 | grep -vE 'BASH|readonly' || true
       unset __ENVFILE_SET
       ;;
@@ -80,7 +82,7 @@ envfile() {
 __ENVFILE_SET=
 
 export -f envfile
-[[ "${PROMPT_COMMAND:-}" =~ envfile ]] || PROMPT_COMMAND="envfile${PROMPT_COMMAND:+;$PROMPT_COMMAND}"
+export starship_precmd_user_func="envfile"
 
 if [ "${BASH_SOURCE[0]##*/}" = "${0##*/}" ]; then
   for arg; do

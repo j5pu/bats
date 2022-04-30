@@ -2,8 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/bats.iml" filepath="$PROJECT_DIR$/.idea/bats.iml" />
       <module fileurl="file://$PROJECT_DIR$/../Downloads/direnv/.idea/direnv.iml" filepath="$PROJECT_DIR$/../Downloads/direnv/.idea/direnv.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/shts.iml" filepath="$PROJECT_DIR$/.idea/shts.iml" />
+      <module fileurl="file:///usr/local/Homebrew/Library/Taps/bizeu/homebrew-tap/.idea/homebrew-tap.iml" filepath="/usr/local/Homebrew/Library/Taps/bizeu/homebrew-tap/.idea/homebrew-tap.iml" />
     </modules>
   </component>
 </project>
