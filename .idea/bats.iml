@@ -10,6 +10,7 @@
     <orderEntry type="module" module-name="bash_completion.d" />
     <orderEntry type="module" module-name="bash-completion@2" />
     <orderEntry type="module" module-name="shrc" />
+    <orderEntry type="module" module-name="secrets" />
   </component>
   <component name="PackageRequirementsSettings">
     <option name="requirementsPath" value="setup.cfg" />

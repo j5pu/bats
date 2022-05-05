@@ -10,6 +10,7 @@
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../binsh" vcs="Git" />
+    <mapping directory="$PROJECT_SECRETS$" vcs="Git" />
     <mapping directory="$PROJECT_SHRC$" vcs="Git" />
     <mapping directory="$PROJECT_HOMEBREW_TAP$" vcs="Git" />
   </component>
