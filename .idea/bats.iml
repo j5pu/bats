@@ -5,7 +5,6 @@
       <excludeFolder url="file://$MODULE_DIR$/.shts" />
     </content>
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="direnv" />
   </component>
   <component name="PackageRequirementsSettings">
     <option name="requirementsPath" value="setup.cfg" />
