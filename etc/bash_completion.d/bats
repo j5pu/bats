@@ -1,7 +1,7 @@
 # shellcheck shell=bash
 
 #######################################
-# shts completions
+# bats/bats.sh completions
 # Globals:
 #   COMPREPLY
 # Arguments:
@@ -9,14 +9,14 @@
 #   2     word being completed ("cur")
 #   3     word preceding the word being completed or $1 when is the first word ("prev")
 #######################################
-_shts() {
+_bats() {
   local commands=() formatters=(bashpro junit pretty tap tap13) list=()
   local options=(--code-quote-style -c --count -f --filter -F --formatter -d --dry-run -j --jobs
     --gather-test-outputs-in --no-parallelize-across-files --no-parallelize-within-files --no-tempdir-cleanup
     --one -p --pretty --report-formatter -r --recursive -o --output --print-output-on-failure
     --show-output-of-passing-tests --tap -T --timing -x --trace --verbose --verbose-run)
 
-  ! [[ "${COMP_WORDS[1]}" =~ -h|--help|-v|--version|commands|help|functions|list ]] || return 0
+  ! [[ "${COMP_WORDS[1]}" =~ -h|--help|--man|--man7|-v|--version|commands|help|functions|list ]] || return 0
   [[ $COMP_CWORD -ne 1 ]] || mapfile -t commands < <("$1" commands)
 
   case "$2" in
@@ -29,6 +29,5 @@ _shts() {
   mapfile -t COMPREPLY < <(compgen -o nosort -W "${commands[*]} ${formatters[*]} ${options[*]} ${list[*]}" -- "$2")
 }
 
-complete -F _shts bats
-complete -F _shts shts
-complete -F _shts shts.sh
+complete -F _bats bats
+complete -F _bats bats.sh
