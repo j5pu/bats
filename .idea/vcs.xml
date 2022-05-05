@@ -9,8 +9,8 @@
   </component>
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/../Downloads/direnv" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../binsh" vcs="Git" />
+    <mapping directory="$PROJECT_SHRC$" vcs="Git" />
     <mapping directory="/usr/local/Homebrew/Library/Taps/bizeu/homebrew-tap" vcs="Git" />
   </component>
 </project>
