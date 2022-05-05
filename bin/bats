@@ -1,10 +1,6 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2155,SC2046
 
-
-name=shts
-__brew_lib="$(brew --prefix)/lib"
-
 # <html><h2>Bats Description Array</h2>
 # <p><strong><code>$BATS_ARRAY</code></strong> created by bats::array() with $BATS_TEST_DESCRIPTION.</p>
 # </html>
@@ -275,7 +271,7 @@ Globals:
    BATS_GATHER              Gather the output of failing *and* passing tests as
                             files in directory [--gather-test-outputs-in].
    BATS_OUTPUT              Directory to write report files [-o|--output].
-   BATS_TEST_DIR            Path to the test directory, passed as argument or found by '${name}'.
+   BATS_TEST_DIR            Path to the test directory, passed as argument or found by '${script}'.
    BATS_TESTS               Array of tests found.
 
 $("${BATS_EXECUTABLE}" --version)
@@ -296,6 +292,7 @@ EOF
 #######################################
 _libs() {
   local i
+  __brew_lib="$(brew --prefix)/lib"
   for i in bats-assert bats-file bats-support; do
     if ! . "${__brew_lib}/${i}/load.bash"; then
       echo >&2 "${BASH_SOURCE[0]}: ${__brew_lib}/${i}/load.bash: sourcing error"
