@@ -10,7 +10,7 @@ basename := $(shell basename $(DIR))
 #	@brew bundle --file tests/Brewfile --quiet --no-lock | grep -v "^Using"
 
 bats:
-	@brew reinstall --quiet $(basename)
+	@brew reinstall --quiet $${USER}/tap/$(basename)
 
 binsh:
 	@brew reinstall --quiet binsh
