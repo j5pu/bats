@@ -15,9 +15,6 @@ bats:
 binsh:
 	@brew reinstall --quiet binsh
 
-cask:
-	@brew reinstall --cask --quiet $(basename)
-
 commit:
 	@test -z $$(git status --porcelain) || { git add -A && git commit --quiet -a -m "auto"; }
 

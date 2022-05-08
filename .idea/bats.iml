@@ -11,6 +11,7 @@
     <orderEntry type="module" module-name="bash-completion@2" />
     <orderEntry type="module" module-name="shrc" />
     <orderEntry type="module" module-name="secrets" />
+    <orderEntry type="module" module-name="JetBrains" />
   </component>
   <component name="PackageRequirementsSettings">
     <option name="requirementsPath" value="setup.cfg" />
