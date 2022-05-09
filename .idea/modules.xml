@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://$LIBRARY_HOMEBREW$/.idea/Homebrew.iml" filepath="$LIBRARY_HOMEBREW$/.idea/Homebrew.iml" />
       <module fileurl="file://$PROJECT_DIR$/../JetBrains/.idea/JetBrains.iml" filepath="$PROJECT_DIR$/../JetBrains/.idea/JetBrains.iml" />
+      <module fileurl="file:///Applications/PyCharm.app/.idea/PyCharm.app.iml" filepath="/Applications/PyCharm.app/.idea/PyCharm.app.iml" />
       <module fileurl="file:///usr/local/Cellar/bash-completion@2/.idea/bash-completion@2.iml" filepath="/usr/local/Cellar/bash-completion@2/.idea/bash-completion@2.iml" />
       <module fileurl="file:///usr/local/etc/bash_completion.d/.idea/bash_completion.d.iml" filepath="/usr/local/etc/bash_completion.d/.idea/bash_completion.d.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/bats.iml" filepath="$PROJECT_DIR$/.idea/bats.iml" />

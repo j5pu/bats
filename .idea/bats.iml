@@ -12,6 +12,7 @@
     <orderEntry type="module" module-name="shrc" />
     <orderEntry type="module" module-name="secrets" />
     <orderEntry type="module" module-name="JetBrains" />
+    <orderEntry type="module" module-name="PyCharm.app" />
   </component>
   <component name="PackageRequirementsSettings">
     <option name="requirementsPath" value="setup.cfg" />
