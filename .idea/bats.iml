@@ -11,8 +11,6 @@
     <orderEntry type="module" module-name="bash-completion@2" />
     <orderEntry type="module" module-name="shrc" />
     <orderEntry type="module" module-name="secrets" />
-    <orderEntry type="module" module-name="JetBrains" />
-    <orderEntry type="module" module-name="PyCharm.app" />
     <orderEntry type="module" module-name="tap" />
   </component>
   <component name="PackageRequirementsSettings">

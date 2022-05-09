@@ -9,7 +9,6 @@
   </component>
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/../JetBrains" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../binsh" vcs="Git" />
     <mapping directory="$PROJECT_SECRETS$" vcs="Git" />
     <mapping directory="$PROJECT_SHRC$" vcs="Git" />
