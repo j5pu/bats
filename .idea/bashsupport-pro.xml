@@ -7,18 +7,9 @@
           <source path="/usr/local/Cellar/bats-assert/2.0.0/lib/bats-assert/src" recursive="true" external="true" />
           <source path="/usr/local/Cellar/bats-file/0.3.0/lib/bats-file/src" recursive="true" external="true" />
           <source path="share/bashpro/bats" recursive="true" />
-          <source path="bin" recursive="true" />
         </sources>
         <targets>
           <target path="tests" recursive="true" />
-        </targets>
-      </library>
-      <library name="shts">
-        <sources>
-          <source path="bin" recursive="true" />
-          <source path="share/bashpro/bash" recursive="true" />
-        </sources>
-        <targets>
           <target path="bin" recursive="true" />
         </targets>
       </library>

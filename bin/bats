@@ -10,6 +10,8 @@ export BATS_ARRAY=()
 #
 export BATS_COMMAND
 
+# Bats Core executable path
+#
 export BATS_EXECUTABLE="$(brew --prefix bats-core)/bin/bats"
 
 # <html><h2>Array with Bats Libs Functions and Helper Functions Provided by bats/bats.sh</h2>
@@ -300,7 +302,6 @@ _libs() {
     fi
   done
   unset i
-  _exported assert || return
 }
 
 #######################################
@@ -319,11 +320,11 @@ _main() {
     awk -F '(' "/^$(basename "${BASH_SOURCE[0]}" .sh)::.*\(\)/ { gsub(/ /,\"\",\$1); print \$1 }" "${BASH_SOURCE[0]}"
   )
   # bashsupport disable=BP2001
-  export -f "${BATS_FUNCTIONS[@]}" && _exported bats::env && bats::env
+  export -f "${BATS_FUNCTIONS[@]}" && _exported assert && _exported bats::env && bats::env
   unset -f _die _directory _file _functions _help _libs
 
   [ "${BASH_SOURCE##*/}" = "${0##*/}" ] || return
-
+  return
   set -eu
   shopt -s inherit_errexit
 
