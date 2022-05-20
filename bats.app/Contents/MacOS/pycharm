@@ -1,7 +1,0 @@
-#!/bin/bash
-
-cd "$(dirname "$0")" || exit
-cd "$(git rev-parse --show-toplevel)" || exit
-export PATH="${PWD}/bin:${PATH}"
-"/Applications/PyCharm.app/Contents/MacOS/pycharm" "${PWD}"
-
