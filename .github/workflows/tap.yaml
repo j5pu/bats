@@ -27,7 +27,7 @@ jobs:
           printf "::set-output name=%s::%s\n" version "${GITHUB_REF#refs/tags/}"
           printf "::set-output name=%s::%s\n" message "$(git log -1 --pretty=%B) ${formula} ${version}"
 
-      - uses: mislav/bump-homebrew-formula-action@v1
+      - uses: mislav/bump-homebrew-formula-action@v3
         with:
           formula-name: BatsBash
           formula-path: ${{ steps.info.outputs.path }}
